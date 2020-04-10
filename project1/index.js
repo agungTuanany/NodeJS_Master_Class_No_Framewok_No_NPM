@@ -14,17 +14,20 @@ const port = 8080
 const server = http.createServer ((req, res) => {
 
 	// Get the URL and parse it
-	let parsedUrl =url.parse(req.url, true)
+	const parsedUrl =url.parse(req.url, true)
 
 	// Get the path
-	let path = parsedUrl.pathname
-	let trimmedPath = path.replace(/^\/+|\/+$/g, "")
+	const path		  = parsedUrl.pathname
+	const trimmedPath = path.replace(/^\/+|\/+$/g, "")
+
+	// Get the HTTP Method
+	const method		  = req.method.toLowerCase ()
 
 	// Send the response
 	res.end ("Hello world\n")
 
 	// log the request path
-	console.log (`Request recieved on path ${trimmedPath}`)
+	console.log (`Request recieved on path: "${trimmedPath}" with method: "${method}"`)
 })
 
 
