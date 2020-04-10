@@ -26,12 +26,16 @@ const server = http.createServer ((req, res) => {
 	// Get the HTTP Method
 	const method				= req.method.toLowerCase ()
 
+	// Get the headers as an object
+	const header				= req.headers
+
 	// Send the response
 	res.end ("Hello world\n")
 
 	// log the request path
 	console.log (`Request recieved on path: "${trimmedPath}" with method: "${method}"`)
 	console.log ("Query string parameters:", queryStringObject)
+	console.log ("request recieved with thsese headers: ", header)
 })
 
 
