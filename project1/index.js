@@ -28,10 +28,10 @@ const server = http.createServer ((req, res) => {
 	const method				= req.method.toLowerCase ()
 
 	// Get the headers as an object
-	const header				= req.headers
+	const headers				= req.headers
 
 	// Get the Payload, if any
-	const decoder				= new StringDecoder ("utf-8")
+	const decoder				= new stringDecoder ("utf-8")
 	let buffer					= ""	// just placeholder for string
 
 	// using Stream
@@ -42,24 +42,70 @@ const server = http.createServer ((req, res) => {
 	req.on ("end", () => {
 		buffer += decoder.end ()
 
-		// Send the response
-		res.end ("Hello world\n")
+		// Choose the handler this request should go to. If one is not found,  use notFound handlers
+		let choosenHandler = typeof (router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound
 
-		// log the request path
-		//	console.log (`Request recieved on path: "${trimmedPath}" with method: "${method}"`)
-		//	console.log ("Query string parameters:", queryStringObject)
-		//	console.log ("Request recieved with thsese headers: ", header)
-		console.log ("Reqest recived with this payload: ", buffer)
+		// Construct the data object to send to the handler
+		let data = {
+			"trimmedPath"			  : trimmedPath,
+			"queryStringObject"		  : queryStringObject,
+			"method"				  : method,
+			"headers"				  : headers,
+			"payload"				  : buffer
+		}
+
+		// Route the request to the handler specified in the router
+		choosenHandler (data, function (statusCode, payload) {
+			// Use the status code called back by the handler, or default to 200
+			statusCode = typeof (statusCode) === "number" ? statusCode : 200
+
+			// Use the payload called back the handler, or default to an empty object
+			payload = typeof (payload) === "object" ? payload : {}
+
+			// Convert the payload to a string
+			const payloadString = JSON.stringify (payload)
+
+			// Return the response
+			res.writeHead (statusCode)
+			res.end (payloadString)
+
+			// Log the request path
+			console.log ("Returning this response: ", statusCode, payloadString)
+		})
 	})
 })
-
-
-
-
-
-
 
 // Start the server, and have it listen on port
 server.listen (port, () => {
 	console.log (`The server is listening on port ${port} now`)
 })
+
+// Define the handlers
+let handlers = {}
+
+// Sample handlers
+handlers.sample = function (data, callback) {
+	// callback a HTTP status code, and a payload object
+	callback (406, {
+		"name"	  : "sample handler",
+		"Group"	  : "FOO"
+	})
+}
+
+handlers.foo = (data, callback) => {
+	callback (200, {
+		"name"	  : "foo handler",
+		"Group"	  : "FOO"
+	})
+}
+
+// Not Found handler
+handlers.notFound = function (data, callback) {
+	callback (404)
+}
+
+// Define a Request Router
+const router = {
+	'sample'	: handlers.sample,
+	"foo"		: handlers.foo
+}
