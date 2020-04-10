@@ -7,14 +7,16 @@ let environments = {}
 
 // Staging (default) environment
 environments.staging = {
-	"port"	  : 8080,
-	"envName" : "staging"
+	"httpPort"	  : 8080,
+	"httpsPort"	  : 8086,
+	"envName"	  : "staging"
 }
 
 // Production environment
 environments.production = {
-	"port"	  : 6073,
-	"envName" : "production"
+	"httpPort"	  : 6073,
+	"httpsPort"	  : 6077,
+	"envName"	  : "production"
 }
 
 // Determine which environment was passed as a command-line argument
