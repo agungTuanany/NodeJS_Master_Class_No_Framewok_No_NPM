@@ -7,8 +7,8 @@
 const http			  = require ("http")
 const url			  = require ("url")
 const stringDecoder	  = require ("string_decoder").StringDecoder
+const config		  = require ("./config.js")
 
-//
 const port = 8080
 
 // The server should respond to all request with a string
@@ -77,8 +77,8 @@ const server = http.createServer ((req, res) => {
 })
 
 // Start the server, and have it listen on port
-server.listen (port, () => {
-	console.log (`The server is listening on port ${port} now`)
+server.listen (config.port, () => {
+	console.log (`The server is listening on port "${config.port}" in "${config.envName}" mode `)
 })
 
 // Define the handlers
