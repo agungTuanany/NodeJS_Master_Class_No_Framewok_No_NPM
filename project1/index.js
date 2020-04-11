@@ -11,7 +11,29 @@ const stringDecoder	  = require ("string_decoder").StringDecoder
 const config		  = require ("./config.js")
 const fs			  = require ("fs")
 
-const port = 8080
+// Test Purpose
+const _data			  = require ("./lib/data")
+
+///////////////////////////////////////////////////////////
+// XXX XXX XXX TESTING XXX XXX XXX
+// @TODO delete this test
+
+//_data.create ("test", "newFile", {"foo": "bar"}, (err) => {
+//	console.log ("this was the error:", `"${err}"`)
+//})
+
+//_data.read ("test", "newFile1", (err, data) => {
+//	console.log ('this was the error', `"${err}"`, 'and this was the data', `"${data}"`)
+//})
+
+//_data.update ("test", "newFile", {"fizz": "buzz"}, (err) => {
+//	console.log ('this was the error:', `"${err}"`)
+//})
+
+//_data.delete ("test", "newFile", (err) => {
+//	console.log ('this was the error: ', `"${err}"`)
+//})
+///////////////////////////////////////////////////////////
 
 // Instantiate the HTTP server
 const httpServer = http.createServer ((req, res) => {
