@@ -1,3 +1,4 @@
+"use strict"
 /*
  * Library for storing and editing data
  *
@@ -6,6 +7,8 @@
 // Dependencies
 const fs		= require ("fs")
 const path		= require ("path")
+
+const helpers	= require ("./helpers")
 
 // Container for the module (to be exported)
 let lib = {}
@@ -30,6 +33,7 @@ lib.create = function (dir, file, data, callback) {
 				if (!err) {
 					fs.close (fileDescriptor, function (err) {
 						if (!err) {
+							// false mean no error
 							callback (false)
 						}
 						else {
@@ -51,7 +55,13 @@ lib.create = function (dir, file, data, callback) {
 // Read data from a file
 lib.read = function (dir, file, callback) {
 	fs.readFile (`${lib.baseDir}${dir}/${file}.json`, "utf-8", function (err, data) {
-		callback (err, data)
+		if (!err && data) {
+			const parsedData = helpers.parseJsonToObject (data)
+			callback (false, parsedData)
+		}
+		else {
+			callback (err, data)
+		}
 	})
 }
 
@@ -97,34 +107,12 @@ lib.update = function (dir, file, data, callback) {
 
 lib.delete = function (dir, file, callback) {
 
-	// Unlink the file
-	fs.unlink (`${lib.baseDir}${dir}/${file}.json`, function (err, fileDescriptor) {
-		if (!err && fileDescriptor) {
-			// Convert data to string
-			const stringData = JSON.stringify (data)
-
-			// Write to file and close it
-			fs.writeFile (fileDescriptor, stringData, function (err) {
-				if (!err) {
-					fs.close (fileDescriptor, function (err) {
-						if (!err) {
-							callback (false)
-						}
-						else {
-							callback ("Error closing existing file")
-						}
-					})
-				}
-				else {
-					callback ("Error writing to existing file")
-				}
-			})
-		}
-		else {
-			callback ("Could not open file for updating, it may not exist yet")
-		}
+	// Unlink the file from the filesystem
+	fs.unlink (lib.baseDir+dir+"/"+file+".json", function (err) {
+		callback (err)
 	})
 }
+
 
 // Export the module
 module.exports = lib

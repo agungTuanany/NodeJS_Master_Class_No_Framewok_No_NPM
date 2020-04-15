@@ -8,13 +8,18 @@ const http			  = require ("http")
 const https			  = require ("https")
 const url			  = require ("url")
 const stringDecoder	  = require ("string_decoder").StringDecoder
-const config		  = require ("./config.js")
 const fs			  = require ("fs")
 
-// Test Purpose
-const _data			  = require ("./lib/data")
+// Buildin dependencies
+const config		  = require ("./lib/config.js")
+const handlers		  = require ("./lib/handlers")
+const helpers		  = require ("./lib/helpers")
+
 
 ///////////////////////////////////////////////////////////
+// Dependencies test
+const _data			  = require ("./lib/data")
+
 // XXX XXX XXX TESTING XXX XXX XXX
 // @TODO delete this test
 
@@ -22,8 +27,8 @@ const _data			  = require ("./lib/data")
 //	console.log ("this was the error:", `"${err}"`)
 //})
 
-//_data.read ("test", "newFile1", (err, data) => {
-//	console.log ('this was the error', `"${err}"`, 'and this was the data', `"${data}"`)
+//_data.read ("test", "newFile", (err, data) => {
+//	console.log ("this was the error", `"${err}"`, 'and this was the data', data)
 //})
 
 //_data.update ("test", "newFile", {"fizz": "buzz"}, (err) => {
@@ -35,6 +40,8 @@ const _data			  = require ("./lib/data")
 //})
 ///////////////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////
 // Instantiate the HTTP server
 const httpServer = http.createServer ((req, res) => {
 	unifiedServer (req, res)
@@ -49,8 +56,8 @@ httpServer.listen (config.httpPort, () => {
 const httpsServerOptions = {
 	"key"	  : fs.readFileSync ("./https/key.pem") ,
 	"cert"	  : fs.readFileSync ("./https/cert.pem")
-
 }
+
 const httpsServer = https.createServer (httpsServerOptions, (req, res) => {
 	unifiedServer (req, res)
 })
@@ -59,12 +66,15 @@ const httpsServer = https.createServer (httpsServerOptions, (req, res) => {
 httpsServer.listen (config.httpsPort, () => {
 	console.log (`The server is listening on port "${config.httpsPort}"`)
 })
+///////////////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////
 // All the server logic for both 'HTTP' and 'HTTPS' server
 const unifiedServer = function (req, res) {
 
 	// Get the URL and parse it
-	const parsedUrl =url.parse(req.url, true)
+	const parsedUrl = url.parse(req.url, true)
 
 	// Get the path
 	const path					= parsedUrl.pathname
@@ -100,7 +110,7 @@ const unifiedServer = function (req, res) {
 			"queryStringObject"		  : queryStringObject,
 			"method"				  : method,
 			"headers"				  : headers,
-			"payload"				  : buffer
+			"payload"				  : helpers.parseJsonToObject (buffer)
 		}
 
 		// Route the request to the handler specified in the router
@@ -124,39 +134,13 @@ const unifiedServer = function (req, res) {
 		})
 	})
 }
+///////////////////////////////////////////////////////////
 
-// Define the handlers
-let handlers = {}
 
-// Ping handlers
-handlers.ping = function (data, callback) {
-	callback (200)
-}
-
-// Sample handlers
-handlers.sample = function (data, callback) {
-	// callback a HTTP status code, and a payload object
-	callback (406, {
-		"name"	  : "sample handler",
-		"Group"	  : "FOO"
-	})
-}
-
-handlers.foo = (data, callback) => {
-	callback (200, {
-		"name"	  : "foo handler",
-		"Group"	  : "FOO"
-	})
-}
-
-// Not Found handler
-handlers.notFound = function (data, callback) {
-	callback (404)
-}
-
+///////////////////////////////////////////////////////////
 // Define a Request Router
 const router = {
 	"sample"	: handlers.sample,
-	'ping'		: handlers.ping,
-	"foo"		: handlers.foo
+	"users"		: handlers.users
 }
+///////////////////////////////////////////////////////////

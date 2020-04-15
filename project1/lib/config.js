@@ -3,20 +3,22 @@
  *
 */
 
-let environments = {}
+const environments = {}
 
 // Staging (default) environment
 environments.staging = {
-	"httpPort"	  : 8080,
-	"httpsPort"	  : 8086,
-	"envName"	  : "staging"
+	"httpPort"		  : 8080,
+	"httpsPort"	  	  : 8086,
+	"envName"	  	  : "staging",
+	"hashingSecret"	  : "thisIsASecret"
 }
 
 // Production environment
 environments.production = {
-	"httpPort"	  : 6073,
-	"httpsPort"	  : 6077,
-	"envName"	  : "production"
+	"httpPort"		  : 6073,
+	"httpsPort"	  	  : 6077,
+	"envName"	  	  : "production",
+	"hashingSecret"	  : "thisIsASecret"
 }
 
 // Determine which environment was passed as a command-line argument
