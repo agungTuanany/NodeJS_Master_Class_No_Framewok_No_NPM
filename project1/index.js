@@ -1,4 +1,4 @@
-/*
+/* typeof (data.headers.token)
  * Primary file for the API
  *
  */
@@ -141,6 +141,7 @@ const unifiedServer = function (req, res) {
 // Define a Request Router
 const router = {
 	"sample"	: handlers.sample,
+	"tokens"	: handlers.tokens,
 	"users"		: handlers.users
 }
 ///////////////////////////////////////////////////////////
