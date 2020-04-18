@@ -38,6 +38,11 @@ const _data			  = require ("./lib/data")
 //_data.delete ("test", "newFile", (err) => {
 //	console.log ('this was the error: ', `"${err}"`)
 //})
+
+// Twilio send SMS test
+//helpers.sendTwilioSms ("+/your/phone/number", "TEST FROM TWILIO", (err) => {
+//	console.log ("this was an error ", err)
+//})
 ///////////////////////////////////////////////////////////
 
 
