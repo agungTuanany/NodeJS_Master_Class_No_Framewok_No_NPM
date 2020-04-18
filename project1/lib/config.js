@@ -10,7 +10,8 @@ environments.staging = {
 	"httpPort"		  : 8080,
 	"httpsPort"	  	  : 8086,
 	"envName"	  	  : "staging",
-	"hashingSecret"	  : "thisIsASecret"
+	"hashingSecret"	  : "thisIsASecret",
+	"maxChecks"		  : 5
 }
 
 // Production environment
@@ -18,7 +19,8 @@ environments.production = {
 	"httpPort"		  : 6073,
 	"httpsPort"	  	  : 6077,
 	"envName"	  	  : "production",
-	"hashingSecret"	  : "thisIsASecret"
+	"hashingSecret"	  : "thisIsASecret",
+	"maxChecks"		  : 5
 }
 
 // Determine which environment was passed as a command-line argument
