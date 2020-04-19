@@ -24,19 +24,22 @@ handlers.users = (data, callback) => {
 
 //////////////////////////////////////////////////////////////////////////////
 
-// Container for the users SUBMETHODS
+// Container for the users submethod
 handlers._users = {}
 
 // User - post
 // Required data : firstName, lastName, phone, password, tosAgreement
 // optional data: none
+// XXX XXX TODO: Since user post save a data as phone-number.json when saved all
+// the regex symbol was truncate, should restore to the state international
+// symbol which is "+"
 handlers._users.post = (data, callback) => {
 
 	// Check that all required fields are filled out
 	const firstName		= typeof (data.payload.firstName) === "string" && data.payload.firstName.trim ().length > 0 ? data.payload.firstName.trim () : false
 	const lastName		= typeof (data.payload.lastName) === "string" && data.payload.lastName.trim ().length > 0 ? data.payload.lastName.trim () : false
-	// Phone number is area-code + 13 digit number
-	const phone			= typeof (data.payload.phone) === "string" && data.payload.phone.trim ().length >= 13 ? data.payload.phone.trim () : false
+	// Phone number is area-code + 12 digit number
+	const phone			= typeof (data.payload.phone) === "string" && data.payload.phone.trim ().length >= 12 ? data.payload.phone.trim () : false
 	const password		= typeof (data.payload.password) === "string" && data.payload.password.trim ().length > 0 ? data.payload.password.trim () : false
 	const tosAgreement	= typeof (data.payload.tosAgreement) === "boolean" && data.payload.tosAgreement === true ? true : false
 
@@ -90,10 +93,11 @@ handlers._users.post = (data, callback) => {
 // User - get
 // Required data: phone
 // Optional data: none
+// XXX TODO: should not truncate the trimmedPath in phone number cause the queryStringObject cannot read "+" symbol
 handlers._users.get = (data, callback) => {
 
 	// Check that the phone number is valid
-	const phone			= typeof (data.queryStringObject.phone) === "string" && data.queryStringObject.phone.trim ().length >= 13 ? data.queryStringObject.phone.trim () : false
+	const phone			= typeof (data.queryStringObject.phone) === "string" && data.queryStringObject.phone.trim ().length >= 12 ? data.queryStringObject.phone.trim () : false
 
 	if (phone) {
 		// Get the token from the headers
@@ -132,7 +136,7 @@ handlers._users.get = (data, callback) => {
 handlers._users.put = (data, callback) => {
 
 	// Check for required fields
-	const phone			= typeof (data.payload.phone) === "string" && data.payload.phone.trim ().length >= 13 ? data.payload.phone.trim () : false
+	const phone			= typeof (data.payload.phone) === "string" && data.payload.phone.trim ().length >= 12 ? data.payload.phone.trim () : false
 
 	// Check for optional fields
 	const firstName		= typeof (data.payload.firstName) === "string" && data.payload.firstName.trim ().length > 0 ? data.payload.firstName.trim () : false
@@ -203,7 +207,7 @@ handlers._users.put = (data, callback) => {
 handlers._users.delete = (data, callback) => {
 
 	// Check that the phone number is valid
-	const phone = typeof (data.queryStringObject.phone) === "string" && data.queryStringObject.phone.trim ().length >= 13 ? data.queryStringObject.phone.trim () : false
+	const phone = typeof (data.queryStringObject.phone) === "string" && data.queryStringObject.phone.trim ().length >= 12 ? data.queryStringObject.phone.trim () : false
 
 	if (phone) {
 		// Get token from headers
@@ -297,7 +301,7 @@ handlers._tokens = {}
 handlers._tokens.post = (data, callback) => {
 
 	// Check that all required fields are filled out
-	const phone			= typeof (data.payload.phone) === "string" && data.payload.phone.trim ().length >= 13 ? data.payload.phone.trim () : false
+	const phone			= typeof (data.payload.phone) === "string" && data.payload.phone.trim ().length >= 12 ? data.payload.phone.trim () : false
 	const password		= typeof (data.payload.password) === "string" && data.payload.password.trim ().length > 0 ? data.payload.password.trim () : false
 
 	if (phone && data) {
@@ -313,7 +317,7 @@ handlers._tokens.post = (data, callback) => {
 					const expires = Date.now () + 1000 * 60 * 60
 					const tokenObject = {
 						"phone"		  : phone,
-						"id"		  : tokenId,
+						"tokenId"		  : tokenId,
 						"expires"	  : expires
 					}
 
@@ -508,7 +512,7 @@ handlers._checks.post = (data, callback) => {
 
 							// create the check object, and include the user's phone
 							const checkObject = {
-								"id"			  : checkId,
+								"checkId"		  : checkId,
 								"userPhone"		  : userPhone,
 								"protocol"		  : protocol,
 								"url"			  : url,

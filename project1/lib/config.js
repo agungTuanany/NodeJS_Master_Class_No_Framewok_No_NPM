@@ -2,6 +2,8 @@
  * Create and export configuration variables
  *
 */
+// Dependencies
+const env	= require ("./.env")
 
 const environments = {}
 
@@ -13,9 +15,9 @@ environments.staging = {
 	"hashingSecret"	  : "thisIsASecret",
 	"maxChecks"		  : 5,
 	"twilio"		  : {
-		"accountSid"	: "ACb32d411ad7fe886aac54c665d25e5c5d",
-		"authToken"		: "9455e3eb3109edc12e3d8c92768f7a67",
-		"fromPhone"		: "15005550006"
+		"accountSid"	: env.TWILIO_ACCOUNT_SID,
+		"authToken"		: env.TWILIO_AUTH_TOKEN,
+		"fromPhone"		: env.TWILIO_PHONE_NUMBER
 	}
 }
 
