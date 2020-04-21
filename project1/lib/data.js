@@ -75,7 +75,7 @@ lib.update = function (dir, file, data, callback) {
 			const stringData = JSON.stringify (data)
 
 			// Truncate the file | truncate : memotong
-			fs.truncate (fileDescriptor, function (err) {
+			fs.ftruncate (fileDescriptor, function (err) {
 				if (!err) {
 					// Write to the file and close it
 					fs.writeFile (fileDescriptor, stringData, function (err) {
