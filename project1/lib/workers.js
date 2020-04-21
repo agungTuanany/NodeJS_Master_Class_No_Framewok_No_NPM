@@ -9,11 +9,15 @@ const fs			  = require ("fs")
 const http			  = require ("http")
 const https			  = require ("https")
 const url			  = require ("url")
+const util			  = require ("util")
 
 const _data			  = require ("./data")
 const helpers		  = require ("./helpers")
 const _logs			  = require ("./logs")
 
+
+// Debugging
+const debug			  = util.debuglog ("workers")	  // run NODE_DEBUG=workers node index.js
 
 // Instantiate the worker object
 const workers = {}
@@ -31,13 +35,13 @@ workers.gatherAllChecks = () => {
 						workers.validateCheckData (originalCheckData)
 					}
 					else {
-						console.log ("Error: Reading one of the check's data")
+						debug ("Error: Reading one of the check's data")
 					}
 				})
 			})
 		}
 		else {
-			console.log ("Error: Could not find any 'checks to process'")
+			debug ("Error: Could not find any 'checks to process'")
 		}
 	})
 }
@@ -70,8 +74,8 @@ workers.validateCheckData = (originalCheckData) => {
 		workers.perfomCheck (originalCheckData)
 	}
 	else {
-		console.log ("Error: One of the checks is not properly formatted, Skipped it, please check carefully")
-		console.log (`
+		debug ("Error: One of the checks is not properly formatted, Skipped it, please check carefully")
+		debug (`
 			Your OriginalCheckData:${originalCheckData}
 			Your originalCheckData.id:${originalCheckData.checkId}
 			your originalCheckData.userPhone:${originalCheckData.userPhone}
@@ -184,11 +188,11 @@ workers.processCheckOutcome = (originalCheckData, checkOutcome) => {
 				workers.alertUserToStatusChange (newCheckData)
 			}
 			else {
-				console.log ("Check outcome has not changed, no alert needed")
+				debug ("Check outcome has not changed, no alert needed")
 			}
 		}
 		else {
-			console.log ("Error trying to save updates to one of the checks")
+			debug ("Error trying to save updates to one of the checks")
 		}
 	})
 }
@@ -199,10 +203,10 @@ workers.alertUserToStatusChange = (newCheckData) => {
 
 	helpers.sendTwilioSms (newCheckData.userPhone, msg, (err) => {
 		if (!err){
-			console.log ("Success: User was alerted to a status change in their check, via SMS", msg)
+			debug ("Success: User was alerted to a status change in their check, via SMS", msg)
 		}
 		else {
-			console.log ("Error: Could not sent SMS alert to user who had a state change in their check", err)
+			debug ("Error: Could not sent SMS alert to user who had a state change in their check", err)
 		}
 	})
 }
@@ -226,10 +230,10 @@ workers.log =  (originalCheckData, checkOutcome, state, alertWarranted, timeOfCh
 	// Append the log string to the file
 	_logs.append (logFileName, logString, (err) => {
 		if (!err) {
-			console.log ("Logging to file succeeded")
+			debug ("Logging to file succeeded")
 		}
 		else {
-			console.log ("Logging to file failed")
+			debug ("Logging to file failed")
 		}
 	})
 }
@@ -256,22 +260,22 @@ workers.rotateLogs = () => {
 						// Truncate the log
 						_logs.truncate (logId, (err) => {
 							if (!err) {
-								console.log ("Success truncating logFile")
+								debug ("Success truncating logFile")
 							}
 							else {
-								console.log ("Error truncating logFile", err)
+								debug ("Error truncating logFile", err)
 							}
 						})
 					}
 					else {
-						console.log ("Error: compressing one of the log files", err)
+						debug ("Error: compressing one of the log files", err)
 					}
 				})
 			})
 		}
 		else {
-			console.log ("Error: could not find any logs to route")
-			console.log ( "_logs.list: ", err, logs)
+			debug ("Error: could not find any logs to route")
+			debug ( "_logs.list: ", err, logs)
 		}
 	})
 }
@@ -280,11 +284,14 @@ workers.rotateLogs = () => {
 workers.logRotationLoop = () => {
 	setInterval ( () => {
 		workers.rotateLogs ()
-	}, 100 * 5) // 100 * 60 * 60 * 24 = 1 day
+	}, 100 * 60 * 60 * 24) // 100 * 60 * 60 * 24 = 1 day
 }
 
 // Init script
 workers.init = () => {
+	// Send to console, in yellow
+	console.log ('\x1b[33m%s\x1b[0m', "Background workers are running")
+
 	// Execute all the checks immediately
 	workers.gatherAllChecks ()
 
