@@ -90,18 +90,32 @@ server.unifiedServer = function (req, res) {
 		}
 
 		// Route the request to the handler specified in the router
-		choosenHandler (data, function (statusCode, payload) {
+		choosenHandler (data, function (statusCode, payload, contentType) {
+
+			// Determine the type of response (fallback to JSON)
+			contentType = typeof (contentType) === "string" ? contentType : "json"
+
 			// Use the status code called back by the handler, or default to 200
 			statusCode = typeof (statusCode) === "number" ? statusCode : 200
 
-			// Use the payload called back the handler, or default to an empty object
-			payload = typeof (payload) === "object" ? payload : {}
+			// Return the response-part that are content-specific
+			let payloadString = ""
 
-			// Convert the payload to a string
-			const payloadString = JSON.stringify (payload)
+			if (contentType === "json") {
+				res.setHeader ("Content-Type", "application/json")
+				// Use the payload called back the handler, or default to an empty object
+				payload = typeof (payload) === "object" ? payload : {}
+				// Convert the payload to a string
+				payloadString = JSON.stringify (payload)
+			}
 
-			// Return the response
-			res.setHeader ("Content-Type", "application/json")
+			if (contentType === 'html') {
+				res.setHeader ("Content-Type", "text/html")
+				// Use the payload called back the handler, or default to an empty string
+				payloadString = typeof (payload) === "string" ? payload : ""
+			}
+
+			// return the response-part that are common to all content-types
 			res.writeHead (statusCode)
 			res.end (payloadString)
 
@@ -122,10 +136,19 @@ server.unifiedServer = function (req, res) {
 ///////////////////////////////////////////////////////////
 // Define a Request Router
 server.router = {
-	"sample"	: handlers.sample,
-	"tokens"	: handlers.tokens,
-	"checks"	: handlers.checks,
-	"users"		: handlers.users
+	""					: handlers.index,
+	"account/create"	: handlers.accountCreate,
+	"account/edit"		: handlers.accountEdit,
+	"account/deleted"	: handlers.accountDeleted,
+	"session/create"	: handlers.sessionCreate,
+	"session/deleted"	: handlers.sessionDeleted,
+	"checks/all"		: handlers.checksList,
+	"checks/create"		: handlers.checksCreate,
+	"checks/edit"		: handlers.checksEdit,
+	"sample"			: handlers.sample,
+	"api/tokens"		: handlers.tokens,
+	"api/checks"		: handlers.checks,
+	"api/users"			: handlers.users
 }
 ///////////////////////////////////////////////////////////
 

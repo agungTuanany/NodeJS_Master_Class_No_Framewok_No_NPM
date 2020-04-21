@@ -12,6 +12,32 @@ const config	  = require ("./config")
 // Define the handlers
 let handlers = {}
 
+
+/*
+ * HTML Handlers
+*/
+
+// index handler
+handlers.index = (data, callback) => {
+	// Reject any request that isn't a GET
+	if (data.method === "get") {
+		// Read in a template as a string
+		helpers.getTemplate ("index", (err, str) => {
+			if (!err && str) {
+				callback (200, str, "html")
+			}
+			else { callback (500, undefined, "html") }
+		})
+	}
+	else { callback (405, undefined, "htnl") }
+}
+
+
+
+/*
+ * JSON API Handlers
+*/
+
 handlers.users = (data, callback) => {
 	const acceptableMethod = ["post", "get", "put", "delete"]
 	if (acceptableMethod.indexOf(data.method) > -1) {
