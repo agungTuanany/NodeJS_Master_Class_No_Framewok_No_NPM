@@ -80,6 +80,9 @@ server.unifiedServer = function (req, res) {
 		// Choose the handler this request should go to. If one is not found,  use notFound handlers
 		let choosenHandler = typeof (server.router[trimmedPath]) !== 'undefined' ? server.router[trimmedPath] : handlers.notFound
 
+		// if the request is within the public directory use the public handlers instead
+		choosenHandler = trimmedPath.indexOf ("public/") > -1 ? handlers.public : choosenHandler
+
 		// Construct the data object to send to the handler
 		let data = {
 			"trimmedPath"			  : trimmedPath,
@@ -109,10 +112,47 @@ server.unifiedServer = function (req, res) {
 				payloadString = JSON.stringify (payload)
 			}
 
-			if (contentType === 'html') {
+			if (contentType === "html") {
 				res.setHeader ("Content-Type", "text/html")
 				// Use the payload called back the handler, or default to an empty string
 				payloadString = typeof (payload) === "string" ? payload : ""
+			}
+
+			if (contentType === "favicon") {
+				res.setHeader ("Content-Type", "image/x-icon")
+				// Use the payload called back the handler, or default to an empty string
+				payloadString = typeof (payload) !== "undefined" ? payload : ""
+			}
+
+			if (contentType === "css") {
+				res.setHeader ("Content-Type", "text/css")
+				// Use the payload called back the handler, or default to an empty string
+				payloadString = typeof (payload) !== "undefined" ? payload : ""
+			}
+
+			// XXX XXX XXX FIXME: ALL PNG, JPG return response a dimension into 0X0,in firefox, brave (brave same as chromium)
+			if (contentType === "png") {
+				res.setHeader ("Content-Type", "image/png")
+				// Use the payload called back the handler, or default to an empty string
+				payloadString = typeof (payload) !== "undefined" ? payload : ""
+			}
+
+			if (contentType === "jpg") {
+				res.setHeader ("Content-Type", "image/png")
+				// Use the payload called back the handler, or default to an empty string
+				payloadString = typeof (payload) !== "undefined" ? payload : ""
+			}
+
+			if (contentType === "js") {
+				res.setHeader ("Content-Type", "application/javascript")
+				// Use the payload called back the handler, or default to an empty string
+				payloadString = typeof (payload) !== "undefined" ? payload : ""
+			}
+
+			if (contentType === "plain") {
+				res.setHeader ("Content-Type", "text/plain")
+				// Use the payload called back the handler, or default to an empty string
+				payloadString = typeof (payload) !== "undefined" ? payload : ""
 			}
 
 			// return the response-part that are common to all content-types
@@ -137,6 +177,7 @@ server.unifiedServer = function (req, res) {
 // Define a Request Router
 server.router = {
 	""					: handlers.index,
+	"public"			: handlers.public,
 	"account/create"	: handlers.accountCreate,
 	"account/edit"		: handlers.accountEdit,
 	"account/deleted"	: handlers.accountDeleted,
@@ -148,7 +189,8 @@ server.router = {
 	"sample"			: handlers.sample,
 	"api/tokens"		: handlers.tokens,
 	"api/checks"		: handlers.checks,
-	"api/users"			: handlers.users
+	"api/users"			: handlers.users,
+	"favicon.ico"		: handlers.favicon
 }
 ///////////////////////////////////////////////////////////
 

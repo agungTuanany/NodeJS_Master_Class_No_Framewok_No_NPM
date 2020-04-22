@@ -163,7 +163,7 @@ helpers.addUniversalTemplate = function (str, data, callback) {
 			helpers.getTemplate ("_footer", data, (err, footerString) => {
 				if (!err && footerString) {
 					// Add headerString and footerString together
-					const fullString = headerString+footerString
+					const fullString = headerString+str+footerString
 					callback (false, fullString)
 				}
 				else { "Could not find the 'footer' template" }
@@ -192,12 +192,35 @@ helpers.interpolate = function (str, data) {
 	for (let key in data) {
 		if (data.hasOwnProperty (key) && typeof (data[key] === "string")) {
 			const replace	= data[key]
-			const find		= "{"+key+"}"
+			const find		= '{'+key+'}'
 			str = str.replace (find, replace)
 		}
 	}
 	return str
 }
+
+// Get the content of a static (public) assets
+helpers.getStaticAsset = (fileName, callback) => {
+	fileName = typeof (fileName) === "string" && fileName.length > 0 ? fileName : false
+
+	if (fileName) {
+		const publicDir = path.join (__dirname, "/../public/")
+		fs.readFile (publicDir+fileName, "utf-8", (err, data) => {
+			if (!err && data) {
+				callback (false, data)
+			}
+			else { callback ("No file could be found") 
+			}
+		})
+	}
+	else { callback ("A valid file name was not specified") }
+}
+
+
+
+
+
+
 
 // Export the module
 module.exports = helpers

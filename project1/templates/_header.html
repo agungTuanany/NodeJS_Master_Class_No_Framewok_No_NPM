@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 	<head>
+
+		<!-- General Settings -->
 		<meta charset="utf-8">
 		<meta http-equiv="content-language" content="en-us">
 		<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-		<meta content="utf-8" http-equiv="encoding">
 
-
-		<!-- create a link to be "relative"	to the directory -->
+		<!-- create a lonk to be "relativ" to the directory -->
 		<base href="{global.baseUrl}" />
 
 		<!-- Meta Tags -->
@@ -17,11 +17,10 @@
 		<!-- Static Assets -->
 		<link type="image/x-icon" rel="icon" href="favicon.ico">
 
-		<!-- XXX XXX TODO create a static directory XXX XXX  -->
 		<script type="text/javascript" charset="utf-8" src="public/app.js"></script>
 
 		<!-- Stylesheet -->
-		<link rel="stylesheet" type="text/css" href="public/app.css">
+		<link rel="stylesheet" type="text/css" href="public/app.css" />
 	</head>
 
 	<body class="{body.class}">
@@ -33,27 +32,29 @@
 			<div class="header">
 
 				<!-- Logo -->
-				<a class="logo" href="/"></a>
+				<a class="logo" href="/">
+					<img src="public/test.jpg" alt="Logo" />
+				</a>
 
-				<!--Navigation -->
+				<!-- Navigation -->
 				<ul class="menu">
 					<li>
 						<a href="/">Home</a>
 					</li>
-					<li>
-						<a class="loggedOut" href="/">Signup</a>
+					<li class="loggedOut">
+						<a href="/account/create">Signup</a>
 					</li>
-					<li>
-						<a class="loggedOut" href="/">Login</a>
+					<li class="loggedOut">
+						<a href="/session/create">Login</a>
 					</li>
-					<li>
-						<a class="loggedIn" href="/">Dashboard</a>
+					<li class="loggedIn">
+						<a href="/checks/all">Dashboard</a>
 					</li>
-					<li>
-						<a class="loggedIn" href="/">Account Setting</a>
+					<li class="loggedIn">
+						<a href="/account/setting">Account Settings</a>
 					</li>
-					<li>
-						<a class="loggedIn" href="/">Logout</a>
+					<li class="loggedIn">
+						<a href="#">Logout</a>
 					</li>
 				</ul>
 			</div>
