@@ -24,9 +24,8 @@ handlers.index = (data, callback) => {
 
 		// Prepare data for interpolation
 		const templateData = {
-			"head.title"		: "This is the title",
-			"head.description"	: "This is the meta description",
-			"body.title"		: "Hello template wolrd!",
+			"head.title"		: "Uptime Monitoring - Made Simple",
+			"head.description"	: "We offer free, simple uptime monitoring for HTTP/HTTPS sites of all kinds. When your site goes down, we'll send you text to let you know",
 			"body.class"		: "index"
 		}
 
