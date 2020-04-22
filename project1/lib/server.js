@@ -187,6 +187,7 @@ server.router = {
 	"checks/create"		: handlers.checksCreate,
 	"checks/edit"		: handlers.checksEdit,
 	"sample"			: handlers.sample,
+	"ping"				: handlers.ping,
 	"api/tokens"		: handlers.tokens,
 	"api/checks"		: handlers.checks,
 	"api/users"			: handlers.users,

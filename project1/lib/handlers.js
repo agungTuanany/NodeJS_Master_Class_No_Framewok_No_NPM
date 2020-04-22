@@ -878,6 +878,10 @@ handlers.sample = function (data, callback) {
 	callback (406, {"name": "Sample handler"})
 }
 
+handlers.ping = function (data, callback) {
+	callback (200)
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 // Not Found handler
