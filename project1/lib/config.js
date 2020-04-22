@@ -7,29 +7,41 @@ const environments = {}
 
 // Staging (default) environment
 environments.staging = {
-	"httpPort"		  : 8080,
-	"httpsPort"	  	  : 8086,
-	"envName"	  	  : "staging",
-	"hashingSecret"	  : "thisIsASecret",
-	"maxChecks"		  : 5,
-	"twilio"		  : {
-		"accountSid"	: "Cb32d411ad7fe886aac54c665d25e5c5d",
-		"authToken"		: "9455e3eb3109edc12e3d8c92768f7a67",
-		"fromPhone"		: 15005550006
+	"httpPort"			: 8080,
+	"httpsPort"	  	  	: 8086,
+	"envName"	  	  	: "staging",
+	"hashingSecret"	  	: "thisIsASecret",
+	"maxChecks"		  	: 5,
+	"twilio"		  	: {
+		"accountSid"	  : "Cb32d411ad7fe886aac54c665d25e5c5d",
+		"authToken"		  : "9455e3eb3109edc12e3d8c92768f7a67",
+		"fromPhone"		  : 15005550006
+	},
+	"templateGlobals"	: {
+		"appName"		  : "UptimeChecker",
+		"companyName"	  : "DaunJRK, Inc",
+		"yearCreated"	  : "2020",
+		"baseUrl"		  : "http://localhost:8080/"
 	}
 }
 
 // Production environment
 environments.production = {
-	"httpPort"		  : 6073,
-	"httpsPort"	  	  : 6077,
-	"envName"	  	  : "production",
-	"hashingSecret"	  : "thisIsASecret",
-	"maxChecks"		  : 5,
-	"twilio"		  : {
-		"accountSid"	: "",
-		"authToken"		: "",
-		"fromPhone"		: ""
+	"httpPort"			: 6073,
+	"httpsPort"	  	  	: 6077,
+	"envName"	  	  	: "production",
+	"hashingSecret"	  	: "thisIsASecret",
+	"maxChecks"		  	: 5,
+	"twilio"		  	: {
+		"accountSid"	  : "",
+		"authToken"		  : "",
+		"fromPhone"		  : ""
+	},
+	"templateGlobals"	: {
+		"appName"		  : "UptimeChecker",
+		"companyName"	  : "DaunJRK, Inc",
+		"yearCreated"	  : "2020",
+		"baseUrl"		  : "http://localhost:6073/"
 	}
 }
 

@@ -17,14 +17,29 @@ let handlers = {}
  * HTML Handlers
 */
 
-// index handler
+// Index handler
 handlers.index = (data, callback) => {
 	// Reject any request that isn't a GET
 	if (data.method === "get") {
-		// Read in a template as a string
-		helpers.getTemplate ("index", (err, str) => {
+
+		// Prepare data for interpolation
+		const templateData = {
+			"head.title"		: "This is the title",
+			"head.description"	: "This is the meta description",
+			"body.title"		: "Hello template wolrd!",
+			"body.class"		: "index"
+		}
+
+		// Read in the template as a string
+		helpers.getTemplate ("index", templateData, (err, str) => {
 			if (!err && str) {
-				callback (200, str, "html")
+				// Add the universal header and footer
+				helpers.addUniversalTemplate (str, templateData, (err, str) => {
+					if (!err && str) {
+						callback (200, str, "html")
+					}
+					else { callback (500, undefined, "html") }
+				})
 			}
 			else { callback (500, undefined, "html") }
 		})
