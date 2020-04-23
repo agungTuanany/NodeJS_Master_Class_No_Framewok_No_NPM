@@ -43,8 +43,44 @@ handlers.index = (data, callback) => {
 			else { callback (500, undefined, "html") }
 		})
 	}
-	else { callback (405, undefined, "htnl") }
+	else { callback (405, undefined, "html") }
 }
+
+// Create Account
+handlers.accountCreate = (data, callback) => {
+	// Reject any request that isn't a GET
+	if (data.method === "get") {
+
+		// Prepare data for interpolation
+		const templateData = {
+			"head.title"		: "Create an Account",
+			"head.description"	: "Signup is easy and only takes for few seconds",
+			"body.class"		: "accountCreate"
+		}
+
+		// Read in the template as a string
+		helpers.getTemplate ("accountCreate", templateData, (err, str) => {
+			if (!err && str) {
+				// Add the universal header and footer
+				helpers.addUniversalTemplate (str, templateData, (err, str) => {
+					if (!err && str) {
+						callback (200, str, "html")
+					}
+					else { callback (500, undefined, "html") }
+				})
+			}
+			else { callback (500, undefined, "html") }
+		})
+
+	}
+	else { callback (405, undefined, "html")
+	}
+}
+
+
+
+
+
 
 // Favicon
 handlers.favicon = (data, callback) => {
@@ -171,7 +207,7 @@ handlers._users.post = (data, callback) => {
 					// Store the user
 					_data.create ("users", phone, userObject, (err) => {
 						if (!err) {
-							console.log (data)
+							//console.log ("=====> user created: data", userObject)
 							callback (200, {"POST": "Create new user success"})
 						}
 						else {
@@ -187,6 +223,7 @@ handlers._users.post = (data, callback) => {
 			}
 			else {
 				// user already exist
+				//console.log ("=====>user created duplicated with phone:", data.phone)
 				callback (400, {"Error": "POST: A user with that phone number already exist"})
 			}
 		})
