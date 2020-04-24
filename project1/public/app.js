@@ -11,19 +11,19 @@ app.config = {
 	"sessionToken"		  : false
 }
 
-// AJAX Client (for the RESTFUL API)
+// AJAX Client (for the RESTful API)
 app.client = {}
 
 // Interface for making API calls
 app.client.request = (headers, path, method, queryStringObject, payload, callback) => {
 
 	// Set defaults | sanity checks
-	headers			  = typeof (headers) === "object" && headers !== null ? headers : {}
-	path			  = typeof (path) === "string" ? path : "/"
-	method			  = typeof (method) === "string" && ["POST", "GET", "PUT", "DELETE"].indexOf (method.toUpperCase ()) > -1 ? method.toUpperCase () : "GET"
-	queryStringObject = typeof (queryStringObject) === "object" && queryStringObject !== null ? queryStringObject : {}
-	payload			  = typeof (payload) === "object" && payload !== null ? payload : {}
-	callback		  = typeof (callback) === "function" ? callback : false
+	headers				= typeof (headers) === "object" && headers !== null ? headers : {}
+	path			  	= typeof (path) === "string" ? path : "/"
+	method			  	= typeof (method) === "string" && ["POST", "GET", "PUT", "DELETE"].indexOf (method.toUpperCase ()) > -1 ? method.toUpperCase () : "GET"
+	queryStringObject 	= typeof (queryStringObject) === "object" && queryStringObject !== null ? queryStringObject : {}
+	payload			  	= typeof (payload) === "object" && payload !== null ? payload : {}
+	callback		  	= typeof (callback) === "function" ? callback : false
 
 	// For each query parameter sent, add it to the path
 	const requestUrl  = path+"?"
@@ -84,7 +84,36 @@ app.client.request = (headers, path, method, queryStringObject, payload, callbac
 
 }
 
+// Bind the logout button
+app.bindLogoutButton = () => {
+	document.getElementById ("logoutButton").addEventListener ("click", (e) => {
 
+		// Stop it from redirecting anywhere
+		e.preventDefault ()
+
+		// Log the user out
+		app.logUserOut ()
+	})
+}
+
+// Log the user out then redirect them
+app.logUserOut = () => {
+	// Get the current token id
+	const tokenId = typeof (app.config.sessionToken.id) === "string" ? app.config.sessionToken.id : false
+
+	// Send the current token to the tokens endpoint to delete it
+	const queryStringObject = {
+		"id"	: tokenId
+	}
+
+	app.client.request (undefined, "api/tokens", "DELETE", queryStringObject, undefined, (statusCode, responsePayload) => {
+		// Set the app.config token as false
+		app.setSessionToken (false)
+
+		// send the user to the logged out page
+		window.location = "/session/deleted"
+	})
+}
 
 // Bind the forms
 app.bindForms = function () {
@@ -94,9 +123,9 @@ app.bindForms = function () {
 
 			// Stop it from submitting
 			e.preventDefault ()
-			const formId = this.id
+			const formId  = this.id
 			const path	  = this.action
-			const method = this.method.toUpperCase()
+			const method  = this.method.toUpperCase()
 
 			// Hide the error message (if it's currently shown due to a previous error)
 			document.querySelector ("#"+formId+" .formError").style.display = 'hidden'
@@ -164,12 +193,12 @@ app.formResponseProcessor = function (formId, requestPayload, responsePayload) {
 				window.location = "/checks/all"
 			}
 		})
+	}
 
-		// If login was successful, set the token in localstorage and redirect the  user
-		if (formId === "sessionCreate") {
-			app.setSessionToken (responsePayload)
-			window.loacation = "/cheks/all"
-		}
+	// If login was successful, set the token in localstorage and redirect the  user
+	if (formId === "sessionCreate") {
+		app.setSessionToken (responsePayload)
+		window.location = "/checks/all"
 	}
 }
 
@@ -181,6 +210,13 @@ app.getSessionToken = () => {
 		try {
 			const token = JSON.pase (tokenString)
 			app.config.sessionToken = token
+
+			if (typeof (token) === "object") {
+				app.setLoggedInClass (true)
+			}
+			else {
+				app.setLoggedInClass (false)
+			}
 		}
 		catch (e){
 			app.config.sessionToken = false
@@ -196,7 +232,7 @@ app.setLoggedInClass = (add) => {
 		target.classList.add ("loggedIn")
 	}
 	else {
-		target.classlist.remove ("loggedIn")
+		target.classList.remove ("loggedIn")
 	}
 }
 
@@ -216,7 +252,7 @@ app.setSessionToken = (token) => {
 
 // Renew the token
 app.renewToken = (callback) => {
-	const currentToken = typeof (app.config.sessionToken) === "object" ? app.cofig.sessionToken : false
+	const currentToken = typeof (app.config.sessionToken) === "object" ? app.config.sessionToken : false
 
 	if (currentToken) {
 		// Update the token with a new expiration
@@ -270,7 +306,12 @@ app.tokenRewalLoop = () => {
 
 // Init (bootstrapping)
 app.init = () => {
+
+	// Bind all the form submission
 	app.bindForms ()
+
+	// Bind logout logoutButton
+	app.bindLogoutButton ()
 
 	// Get the token from localstorage
 	app.getSessionToken ()

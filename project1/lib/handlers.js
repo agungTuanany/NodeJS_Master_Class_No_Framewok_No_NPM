@@ -108,6 +108,36 @@ handlers.sessionCreate = (data, callback) => {
 	}
 }
 
+// Session has been deleted
+handlers.sessionDeleted = (data, callback) => {
+	// Reject any request that isn't a GET
+	if (data.method === "get") {
+
+		// Prepare data for interpolation
+		const templateData = {
+			"head.title"		: "Logged Out",
+			"head.description"	: "You have been logged out of your account",
+			"body.class"		: "sessionDeleted"
+		}
+
+		// Read in the template as a string
+		helpers.getTemplate ("sessionDeleted", templateData, (err, str) => {
+			if (!err && str) {
+				// Add the universal header and footer
+				helpers.addUniversalTemplate (str, templateData, (err, str) => {
+					if (!err && str) {
+						callback (200, str, "html")
+					}
+					else { callback (500, undefined, "html") }
+				})
+			}
+			else { callback (500, undefined, "html") }
+		})
+
+	}
+	else { callback (405, undefined, "html")
+	}
+}
 
 
 
@@ -366,11 +396,11 @@ handlers._users.put = (data, callback) => {
 			})
 		}
 		else {
-			callback (400, {"Error": "PUT method: Missing fields to update"})
+			callback (400, {"Error": "PUT TOKEN method: Missing fields to update"})
 		}
 	}
 	else {
-		callback (400, {"Error": "PUT method: Missing required fields"})
+		callback (400, {"Error": "PUT TOKEN method: Missing required fields"})
 	}
 
 }
@@ -502,22 +532,22 @@ handlers._tokens.post = (data, callback) => {
 							callback (200, tokenObject)
 						}
 						else {
-							callback (500, {"Error": "POST Method: Server Could not create the new token"})
+							callback (500, {"Error": "POST TOKEN Method: Server Could not create the new token"})
 						}
 					})
 				}
 				else {
-					callback (400, {"Error": "POST Method: Password did not match the specified user stored password"})
+					callback (400, {"Error": "POST TOKEN Method: Password did not match the specified user stored password"})
 				}
 			}
 			else {
-				callback (400, {"Error": "POST Method: Could not find specified user"})
+				callback (400, {"Error": "POST TOKEN Method: Could not find specified user"})
 			}
 		})
 
 	}
 	else {
-		callback (400, {"Error": "POST Method: Missing required fields"})
+		callback (400, {"Error": "POST TOKEN Method: Missing required fields"})
 	}
 }
 // Token - get
