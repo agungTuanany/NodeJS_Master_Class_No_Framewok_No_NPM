@@ -19,14 +19,14 @@ app.client.request = (headers, path, method, queryStringObject, payload, callbac
 
 	// Set defaults | sanity checks
 	headers				= typeof (headers) === "object" && headers !== null ? headers : {}
-	path			  	= typeof (path) === "string" ? path : "/"
-	method			  	= typeof (method) === "string" && ["POST", "GET", "PUT", "DELETE"].indexOf (method.toUpperCase ()) > -1 ? method.toUpperCase () : "GET"
-	queryStringObject 	= typeof (queryStringObject) === "object" && queryStringObject !== null ? queryStringObject : {}
-	payload			  	= typeof (payload) === "object" && payload !== null ? payload : {}
-	callback		  	= typeof (callback) === "function" ? callback : false
+	path				= typeof (path) === "string" ? path : "/"
+	method				= typeof (method) === "string" && ["POST", "GET", "PUT", "DELETE"].indexOf (method.toUpperCase ()) > -1 ? method.toUpperCase () : "GET"
+	queryStringObject	= typeof (queryStringObject) === "object" && queryStringObject !== null ? queryStringObject : {}
+	payload				= typeof (payload) === "object" && payload !== null ? payload : {}
+	callback			= typeof (callback) === "function" ? callback : false
 
 	// For each query parameter sent, add it to the path
-	const requestUrl  = path+"?"
+	let requestUrl  = path+"?"
 	let counter	  = 0
 
 	for (let queryKey in queryStringObject) {
@@ -38,7 +38,7 @@ app.client.request = (headers, path, method, queryStringObject, payload, callbac
 				requestUrl+= "&"
 			}
 			// Add the key and value
-			requestUrl+= queryKey+"="+queryStringObject[queryKey]
+			requestUrl+=queryKey+"="+queryStringObject[queryKey]
 		}
 	}
 
@@ -123,9 +123,9 @@ app.bindForms = function () {
 
 			// Stop it from submitting
 			e.preventDefault ()
-			const formId  = this.id
-			const path	  = this.action
-			const method  = this.method.toUpperCase()
+			const formId	= this.id
+			const path		= this.action
+			const method	= this.method.toUpperCase()
 
 			// Hide the error message (if it's currently shown due to a previous error)
 			document.querySelector ("#"+formId+" .formError").style.display = 'hidden'
@@ -303,6 +303,54 @@ app.tokenRewalLoop = () => {
 	}, 1000 * 60)
 }
 
+// Load data on the page
+app.loadDataOnPage = () => {
+	// Get the current page from the body class
+	const bodyClasses = document.querySelector ("body").classList
+	const primaryClass = typeof (bodyClasses[0]) === "string" ? bodyClasses[0] : false
+
+	// Logic for account setting page
+	if (primaryClass === "accountEdit") {
+		app.loadAccountEditPage ()
+	}
+}
+
+// Load the account edit page specifically
+app.loadAccountEditPage = () => {
+	// Get the phone number
+	const phone = typeof (app.config.sessionToken.phone) === "string" ? app.config.sessionToken.phone : false
+
+	if (phone) {
+		// Fetch the user data
+		const queryStringObject = {
+			"phone"		: phone
+		}
+
+		app.client.request (undefined, "api/users", "GET", queryStringObject, undefined, (statusCode, responsePayload) => {
+			if (statusCode === 200) {
+				// Put the data into the forms as values where needed
+				document.querySelector ("#accountEdit1 .firstNameInput").value		= responsePayload.firstName
+				document.querySelector ("#accountEdit1 .lastNameInput").value		= responsePayload.lastName
+				document.querySelector ("#accountEdit1 .displayPhoneInput").value	= responsePayload.phone
+
+				// Put the hidden phone field into both forms
+				const hiddenPhoneInputs = document.querySelectorAll ("input.hiddenPhoneInputs")
+
+				for (let i = 0; i < hiddenPhoneInputs.length; i++) {
+					hiddenPhoneInputs[i].value = responsePayload.phone
+				}
+			}
+			else {
+				// If the request comes back as something other than "200", log the log user out (on assumption that the API is temporarily down or the user token is bad)
+				app.logUserOut ()
+			}
+		})
+	}
+	else {
+		app.logUserOut ()
+	}
+}
+
 
 // Init (bootstrapping)
 app.init = () => {
@@ -318,6 +366,9 @@ app.init = () => {
 
 	// Renew token
 	app.tokenRewalLoop ()
+
+	// Load daa on page
+	app.loadDataOnPage ()
 }
 
 // Call the init processes after the window loads

@@ -139,6 +139,36 @@ handlers.sessionDeleted = (data, callback) => {
 	}
 }
 
+// Edit accout
+handlers.accountEdit = (data, callback) => {
+	// Reject any request that isn't a GET
+	if (data.method === "get") {
+
+		// Prepare data for interpolation
+		const templateData = {
+			"head.title"		: "Account Settings",
+			"head.description"	: "Edit your account details",
+			"body.class"		: "accountEdit"
+		}
+
+		// Read in the template as a string
+		helpers.getTemplate ("accountEdit", templateData, (err, str) => {
+			if (!err && str) {
+				// Add the universal header and footer
+				helpers.addUniversalTemplate (str, templateData, (err, str) => {
+					if (!err && str) {
+						callback (200, str, "html")
+					}
+					else { callback (500, undefined, "html") }
+				})
+			}
+			else { callback (500, undefined, "html") }
+		})
+
+	}
+	else { callback (405, undefined, "html")
+	}
+}
 
 
 
