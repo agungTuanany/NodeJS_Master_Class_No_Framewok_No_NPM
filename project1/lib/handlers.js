@@ -231,6 +231,36 @@ handlers.checksCreate = (data, callback) => {
 	}
 }
 
+// Dashboard (view all checks)
+handlers.checksList = (data, callback) => {
+	// Reject any request that isn't a GET
+	if (data.method === "get") {
+
+		// Prepare data for interpolation
+		const templateData = {
+			"head.title"		: "Dashboard",
+			"body.class"		: "checksList"
+		}
+
+		// Read in the template as a string
+		helpers.getTemplate ("checksList", templateData, (err, str) => {
+			if (!err && str) {
+				// Add the universal header and footer
+				helpers.addUniversalTemplate (str, templateData, (err, str) => {
+					if (!err && str) {
+						callback (200, str, "html")
+					}
+					else { callback (500, undefined, "html") }
+				})
+			}
+			else { callback (500, undefined, "html") }
+		})
+
+	}
+	else { callback (405, undefined, "html")
+	}
+}
+
 // Favicon
 handlers.favicon = (data, callback) => {
 	// Reject any request that isn't a GET
