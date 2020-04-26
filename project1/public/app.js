@@ -546,6 +546,51 @@ app.loadChecksListPage = function(){
 	}
 };
 
+// Load the checks edit page specifically
+app.loadChecksEditPage = () => {
+
+	// Get the check id from the query string, if none is found then redirect back to dashboard
+	const id = typeof (window.location.href.split ("=")[1]) === "string" && window.location.href.split ("=")[1].length > 0 ? window.location.href.split ("=")[1] : false
+
+	if (id) {
+		// Fetch the check data
+		const queryStringObject = {
+			"id"	: id
+		}
+		app.client.request (undefined, "api/checks", "GET", queryStringObject, undefined, (statusCode, responsePayload) => {
+			if (statusCode === 200) {
+
+				// Put the hidden id field into both forms
+				const hiddenInputs = document.querySelectorAll ("input.hiddenIdInput")
+				for (let i = 0; i < hiddenIdInputs.length; i++) {
+					hiddenIdInputs[i].value = responsePayload.id
+				}
+
+				// Put the data into the top form as values where needed
+				document.querySelector ("#checksEdit1 .displayinput").value			= responsePaylaod.id
+				document.querySelector ("#checksEdit1 .displayStateInput").value	= responsePayload.state
+				document.querySelector ("#checksEdit1 .protocolInput").value		= responsePayload.protocol
+				document.querySelector ("#checksEdit1 .urlInput").value		  		= responsePaylaod.url
+				document.querySelector ("#checksEdit1 .methodInput").value	  		= responsePayload.method
+				document.querySelector ("#checksEdit1 .timeoutInput").value	  		= responsePayload.timeoutSeconds
+
+				const successCodeCheckBoxes = document.querySelectorAll ("#checksEdit1 input.successCodesInput")
+				for (let i = 0; i < successCodeCheckBoxes.length; i++) {
+					successCodeCheckBoxes[i].checked = true
+				}
+			}
+			else {
+				// If the request comes back as something other than 200, redirect to dashboard
+				windonw.location = "/checks/all"
+			}
+		})
+
+	}
+	else {
+		window.location = "/checks/all"
+	}
+}
+
 // Loop to renew token often
 app.tokenRewalLoop = () => {
 	setInterval ( () => {
