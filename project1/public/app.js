@@ -130,29 +130,68 @@ app.bindForms = function () {
 			// Hide the error message (if it's currently shown due to a previous error)
 			document.querySelector ("#"+formId+" .formError").style.display = 'hidden'
 
+			// Hide the success message (if it's currently show due to a previous error)
+			if (document.querySelector ("#"+formId+" .formSuccess")) {
+				document.querySelector ("#"+formId+" .formSuccess").style.display = "none"
+			}
+
 			// Turn the inputs into a payload
 			const payload	= {}
 			const elements	= this.elements
 			for (let i = 0; i < elements.length; i++) {
 				if (elements[i].type !== 'submit') {
-					const valueOfElement = elements[i].type == 'checkbox' ? elements[i].checked : elements[i].value
-					payload[elements[i].name] = valueOfElement
+					const classOfElement	= typeof (elements[i].classList.value) === "string" && elements[i].classList.value > 0 ? elements[i].classList.value : ""
+					const valueOfElement	= elements[i].type === 'checkbox' ? elements[i].checked : elements[i].value
+					const elementIsChecked	= elements[i].checked
+					//payload[elements[i].name] = valueOfElement
+
+					// Override the method of the form if the input's name is _method
+					let nameOfElements	= elements[i].name
+					if (nameOfElements === "_method") {
+						method = valueOfElement
+					}
+					else {
+						// Create an payload field named "method" if the elements name is actually httpmethod
+						if (nameOfElements === "httpmethod") {
+							nameOfElements = "method"
+						}
+
+						if (classOfElement.indexOf ("multiselect") > -1) {
+							if (elementIsChecked) {
+								payload[nameOfElements] = typeof (payload[nameOfElements]) === "object" && payload[nameOfElements] instanceof Array ? payload[nameOfElements] : []
+								payload[nameOfElements].push (valueOfElement)
+							}
+						}
+						else {
+							payload [nameOfElements] = valueOfElement
+						}
+					}
+
 				}
 			}
+
+			// If the method is DELETE, the payload should be a queryStringObject instead
+			const queryStringObject = method === "DELETE" ? payload : {}
 
 			// Call the API
 			app.client.request (undefined, path, method, undefined, payload, (statusCode, responsePayload) => {
 				// Display an error on the form if needed
 				if(statusCode !== 200) {
 
-					// Try to get the error from the api, or set a default error message
-					const error = typeof(responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again'
+					if (statusCode == 403) {
+						// log the user out
+						app.logUserOut ()
+					}
+					else {
+						// Try to get the error from the api, or set a default error message
+						const error = typeof(responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again'
 
-					// Set the formError field with the error text
-					document.querySelector ("#"+formId+" .formError").innerHTML = error
+						// Set the formError field with the error text
+						document.querySelector ("#"+formId+" .formError").innerHTML = error
 
-					// Show (unhide) the form error field on the form
-					document.querySelector ("#"+formId+" .formError").style.display = 'block'
+						// Show (unhide) the form error field on the form
+						document.querySelector ("#"+formId+" .formError").style.display = 'block'
+					}
 
 				} else {
 					// If successful, send to form response processor
@@ -182,10 +221,11 @@ app.formResponseProcessor = function (formId, requestPayload, responsePayload) {
 			if (newStatusCode !== 200) {
 
 				// Set the formError field with the error text
-				document.querySelector ("#"+formId+" .formError").innerHTML = error
+				document.querySelector ("#"+formId+" .formError").innerHTML = "Sory!!, an error has occured. Please try again"
 
 				// Show (unhide) the form error field on the form
 				document.querySelector ("#"+formId+" .formError").style.display = 'block'
+
 			}
 			else {
 				// If successful, set the token and redirect the user
@@ -211,6 +251,11 @@ app.formResponseProcessor = function (formId, requestPayload, responsePayload) {
 	if (formId === "accountEdit3") {
 		app.logUserOut (false)
 		window.location = "/account/deleted"
+	}
+
+	// If the user just created a new 'check' successfully, redirect back to the dashboard
+	if (formId === "checksCreate") {
+		window.location = "/checks/all"
 	}
 
 }
@@ -252,6 +297,7 @@ app.setLoggedInClass = (add) => {
 // Set the session token in the app.config object as well as localstorage
 app.setSessionToken = (token) => {
 	app.config.sessionToken = token
+
 	const tokenString = JSON.stringify (token)
 	localStorage.setItem ("token", tokenString)
 
@@ -280,6 +326,7 @@ app.renewToken = (callback) => {
 			if (statusCode === 200) {
 
 				// Get the new token details
+				const queryStringObject = { "id"	: currentToken.id }
 				app.client.request (undefined, "api/tokens", "GET", queryStringObject, undefined, (statusCode, responsePayload) => {
 
 					// Display an error on the form if needed
@@ -303,17 +350,6 @@ app.renewToken = (callback) => {
 		app.setSessionToken (false)
 		callback (true)
 	}
-}
-
-// Loop to renew token often
-app.tokenRewalLoop = () => {
-	setInterval ( () => {
-		app.renewToken ( (err) => {
-			if (!err) {
-				console.log ("Token renewed successfully @"+Date.now ())
-			}
-		})
-	}, 1000 * 60)
 }
 
 // Load data on the page
@@ -347,11 +383,11 @@ app.loadAccountEditPage = () => {
 				document.querySelector ("#accountEdit1 .displayPhoneInput").value	= responsePayload.phone
 
 				// Put the hidden phone field into both forms
-				const hiddenPhoneInputs = document.querySelectorAll ("input.hiddenPhoneInputs")
-
+				const hiddenPhoneInputs = document.querySelectorAll ("input.hiddenPhoneNumberInputs")
 				for (let i = 0; i < hiddenPhoneInputs.length; i++) {
 					hiddenPhoneInputs[i].value = responsePayload.phone
 				}
+
 			}
 			else {
 				// If the request comes back as something other than "200", log the log user out (on assumption that the API is temporarily down or the user token is bad)
@@ -364,6 +400,16 @@ app.loadAccountEditPage = () => {
 	}
 }
 
+// Loop to renew token often
+app.tokenRewalLoop = () => {
+	setInterval ( () => {
+		app.renewToken ( (err) => {
+			if (!err) {
+				console.log ("Token renewed successfully @"+Date.now ())
+			}
+		})
+	}, 1000 * 60)
+}
 
 // Init (bootstrapping)
 app.init = () => {

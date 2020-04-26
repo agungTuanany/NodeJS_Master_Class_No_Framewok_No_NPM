@@ -201,6 +201,35 @@ handlers.accountDeleted = (data, callback) => {
 	}
 }
 
+// Create a bew check
+handlers.checksCreate = (data, callback) => {
+	// Reject any request that isn't a GET
+	if (data.method === "get") {
+
+		// Prepare data for interpolation
+		const templateData = {
+			"head.title"		: "Create a New Check",
+			"body.class"		: "checksCreate"
+		}
+
+		// Read in the template as a string
+		helpers.getTemplate ("checksCreate", templateData, (err, str) => {
+			if (!err && str) {
+				// Add the universal header and footer
+				helpers.addUniversalTemplate (str, templateData, (err, str) => {
+					if (!err && str) {
+						callback (200, str, "html")
+					}
+					else { callback (500, undefined, "html") }
+				})
+			}
+			else { callback (500, undefined, "html") }
+		})
+
+	}
+	else { callback (405, undefined, "html")
+	}
+}
 
 // Favicon
 handlers.favicon = (data, callback) => {
