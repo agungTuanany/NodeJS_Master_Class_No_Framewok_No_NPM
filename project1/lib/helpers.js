@@ -33,9 +33,7 @@ helpers.parseJsonToObject = function (str) {
 		return obj
 	}
 	catch (e) {
-		return {
-			"Error": "Error from helpers.parseToObject"
-		}
+		return {}
 	}
 }
 

@@ -148,12 +148,12 @@ workers.perfomCheck = (originalCheckData) => {
 		// update the checkOutcome and pass the data along
 		checkOutcome.error = {
 			"error"		  : true,
-			"value"		  : timeout
+			"value"		  : "timeout"
 		}
 
 		if (!outcomeSent) {
 			workers.processCheckOutcome (originalCheckData, checkOutcome)
-				outComeSent = true
+				outcomeSent = true
 		}
 	})
 

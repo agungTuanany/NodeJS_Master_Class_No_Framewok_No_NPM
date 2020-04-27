@@ -308,6 +308,7 @@ handlers.favicon = (data, callback) => {
 	else { callback (405, "Cannot find favicon.ico") }
 }
 
+// Public assets
 handlers.public = (data, callback) =>{
 	// Reject any request that isn't a GET
 	if (data.method === "get") {
@@ -363,8 +364,10 @@ handlers.public = (data, callback) =>{
 
 /*
  * JSON API Handlers
+ *
 */
 
+// Users
 handlers.users = (data, callback) => {
 	const acceptableMethod = ["post", "get", "put", "delete"]
 	if (acceptableMethod.indexOf(data.method) > -1) {
@@ -375,17 +378,13 @@ handlers.users = (data, callback) => {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
 // Container for the users submethod
 handlers._users = {}
 
 // User - post
 // Required data : firstName, lastName, phone, password, tosAgreement
 // optional data: none
-// XXX XXX TODO: Since user post save a data as phone-number.json when saved all
-// the regex symbol was truncate, should restore to the state international
-// symbol which is "+"
+// XXX XXX TODO: Since user post save a data as phone-number.json when saved all the regex symbol was truncate, should restore to the state internationali symbol which is "+"
 handlers._users.post = (data, callback) => {
 
 	// Check that all required fields are filled out
@@ -417,30 +416,30 @@ handlers._users.post = (data, callback) => {
 					_data.create ("users", phone, userObject, (err) => {
 						if (!err) {
 							//console.log ("=====> user created: data", userObject)
-							callback (200, {"POST": "Create new user success"})
+							callback (200, {"POST User Method": "Create new user success"})
 						}
 						else {
 							console.log (err)
-							callback (500, {"Error": "POST: Could not create the new user "})
+							callback (500, {"Error": "POST User Method: Could not create the new user "})
 						}
 					})
 				}
 				else {
-					callback (500, {"Error": "POST: could not hash the user's password"})
+					callback (500, {"Error": "POST User Method: could not hash the user's password"})
 				}
 
 			}
 			else {
 				// user already exist
 				//console.log ("=====>user created duplicated with phone:", data.phone)
-				callback (400, {"Error": "POST: A user with that phone number already exist"})
+				callback (400, {"Error": "POST User Method: A user with that phone number already exist"})
 			}
 		})
 
 	}
 	else {
 		//console.log (firstName, lastName, phone, password, tosAgreement)
-		callback (400, {"Error": "POST: Missing required fields"})
+		callback (400, {"Error": "POST User Method: Missing required fields"})
 	}
 }
 
@@ -466,7 +465,7 @@ handlers._users.get = (data, callback) => {
 						// Remove the hashed password from the user object before returning it to the requester
 						delete data.hashedPassword
 						// The 'data' coming is not from _user.get () data object, it's from _data.read ()
-						callback (200, data, {"GET result": "server cached"})
+						callback (200, data, {"GET User Method result": "server cached"})
 					}
 					else {
 						callback (404, {"Error": "GET method: Data you try to read is not exist"})
@@ -479,8 +478,8 @@ handlers._users.get = (data, callback) => {
 		})
 	}
 	else {
-		console.log (phone)
-		callback (400, {"Error": "GET method: Missing required field"})
+		console.log ("user GET Method required data: ", phone)
+		callback (400, {"Error": "GET User Method: Missing required field"})
 	}
 }
 
@@ -526,16 +525,16 @@ handlers._users.put = (data, callback) => {
 							// Store the new update
 							_data.update ("users", phone, userData, (err) => {
 								if (!err) {
-									callback (200, {"PUT method": "Update was successful"})
+									callback (200, {"PUT User Method": "Update was successful"})
 								}
 								else {
 									console.log (err)
-									callback (500, {"Error": "PUT method: Could not update the user"})
+									callback (500, {"Error": "PUT User Method: Could not update the user"})
 								}
 							})
 						}
 						else {
-							callback (400, {"Error": "PUT method: The specified user does not exist"})
+							callback (400, {"Error": "PUT User Method: The specified user does not exist"})
 						}
 					})
 				}
@@ -545,11 +544,11 @@ handlers._users.put = (data, callback) => {
 			})
 		}
 		else {
-			callback (400, {"Error": "PUT TOKEN method: Missing fields to update"})
+			callback (400, {"Error": "PUT User Method: Missing fields to update"})
 		}
 	}
 	else {
-		callback (400, {"Error": "PUT TOKEN method: Missing required fields"})
+		callback (400, {"Error": "PUT User Method: Missing required fields"})
 	}
 
 }
@@ -564,76 +563,73 @@ handlers._users.delete = (data, callback) => {
 	const phone = typeof (data.queryStringObject.phone) === "string" && data.queryStringObject.phone.trim ().length >= 12 ? data.queryStringObject.phone.trim () : false
 
 	if (phone) {
-		// Get token from headers
-		const token = typeof (data.headers.token) === "string" ? data.headers.token : false
 
-		// Verify that the given token is valid for the phone number
-		handlers._tokens.verifyToken (token, phone, (tokenIsValid) => {
+		// Get token from headers
+		const token = typeof (data.headers.token) === "string" ? data.headears.token : false
+
+		// Verify that given token is valid for the phone number
+		handlers._token.verifyToken (token, phone, (tokenIsValid) => {																						  // [1]
 			if (tokenIsValid) {
 				// Lookup the user
-				_data.read ("users", phone, (err, userData) => {
+				_data.read ("users", phone, (err, userData) => {																							  // [2]
 					if (!err && userData) {
-						_data.delete ("users", phone, (err) => {
+						// Delete the user's data
+						_data.delete ("users", phone, (err) => {																							  // [3]
 							if (!err) {
-								//callback (200, {"DELETE User Method: Success delete users"})
-								// Delete each checks associated with the user
-								const userChecks = typeof (userData.checks) === "object" && userData.checks instanceof Array ? userData.checks : []
-								const checksToDelete = userChecks.length
+								// Delete each of the checks associated with the user
+								const userChecks	  = typeof (userData.checks) === "object" && userData.checks instanceof Array ? userData.checks : []
+								const checksToDelete  = userChecks.length
 
 								if (checksToDelete > 0) {
-									let checksDeleted = 0
-									let deletionErrors = false
+									let checksDeleted	= 0
+									let deletionErrors	= false
 
 									// Loop through the checks
 									userChecks.forEach ( (checkId) => {
 										// Delete the check
-										_data.delete ("checks", checkId, (err) => {
+										_data.delete ("checks", checkId, (err) => {																			  // [4]
 											if (err) {
 												deletionErrors = true
 											}
 											checksDeleted++
-
-											if (checksDeleted === checksToDelete) {
-												if (!deletionErrors) {
-													callback (200)
-												}
-												else {
-													callback ({"Error": "DELETE User Method: Error encountered while attempting to delete all of the user's checks. All checks may not have been deleted from system successfully"})
-												}
-											}
 										})
-
+										if (checksDeleted === checksToDelete) {
+											if (!deletionErrors) {
+												callback (200)
+											}
+											else {
+												callback (500, {"Error" : "DELETE User Method: Errors encountered while attempting to delete all of the user's checks file. All the checks may not have been deleted from the system succesfully "})
+											}
+										}
 									})
 								}
 								else {
 									callback (200)
 								}
+
 							}
 							else {
-								callback (500, {"Error": "DELETE User Method : Could not delete the specific user"})
-								console.log ("your Error while attempting to call _data.delete", err)
+								callback (500, {"Error" : " Delete User Method: Could not delete the specific user"})
 							}
 						})
 					}
 					else {
-						callback (400, {"Error": "DELETE User Method: Could not find the specific user"})
-						console.log ("your Error while attempting to call _data.read: ", err)
-						console.log ("your data while attempting to call _data,read: ", data)
+						callback (400, {"Error" : "DELETE User Method: Could not find the specific user."})
 					}
 				})
+
 			}
 			else {
-				callback (403, {"Error": "DELETE User method: Missing required 'token' in header, or token is invalid"})
-				console.log ("your token from verifyToken: ", token)
+				callback (403, {"Error" : "DELETE User Method: Missing required token in header. or token is invalid."})
 			}
 		})
+
 	}
 	else {
-		callback (400, {"Error":"DELETE User Method, Missing required field. Something Error in your request"})
-		console.log ("your phone number should not be 'false'", phone)
+		callback (400, {"Error": "DELETE User Method: Missing required fields."})
 	}
-
 }
+
 //////////////////////////////////////////////////////////////////////////////
 
 handlers.tokens = function (data, callback) {
@@ -696,6 +692,8 @@ handlers._tokens.post = (data, callback) => {
 
 	}
 	else {
+		console.log ("TOKEN POST METHOD phone & number:", phone, password)
+		console.log (data)
 		callback (400, {"Error": "POST TOKEN Method: Missing required fields"})
 	}
 }
@@ -713,12 +711,13 @@ handlers._tokens.get = (data, callback) => {
 				callback (200, tokenData)
 			}
 			else {
-				callback (400, {"Error": "GET Token Method: Token did not match the specified user stored password"})
+				callback (400, {"Error": "GET TOKEN Method: Token did not match the specified user stored password"})
 			}
 		})
 	}
 	else {
-		callback (400, {"Error": "GET Token Method: Missing required field, or field invalid"})
+		console.log ("TOKEN GET METHOD tokenId", id)
+		callback (400, {"Error": "GET TOKEN Method: Missing required field, or field invalid"})
 	}
 
 }
@@ -746,23 +745,23 @@ handlers._tokens.put = (data, callback) => {
 							callback (200, tokenData)
 						}
 						else {
-							callback (500, {"Error": "PUT Token Method: Could not update the tokens expiration"})
+							callback (500, {"Error": "PUT TOKEN Method: Could not update the tokens expiration"})
 						}
 					})
 				}
 				else {
-					callback (400, {"Error": "PUT Token Method: The Token has already expired, and cannot be extended"})
+					callback (400, {"Error": "PUT TOKEN Method: The Token has already expired, and cannot be extended"})
 				}
 			}
 			else {
-				callback (400, {"Error": "PUT Token Method: Specified token does not exist"})
+				callback (400, {"Error": "PUT TOKEN Method: Specified token does not exist"})
 			}
 		})
 
 	}
 	else {
-		console.log (extend)
-		callback (400, {"Error": "PUT Token Method: Missing required field(s) or field(s) are invalid"})
+		console.log ("TOKEN PUT METHOD extend", extend)
+		callback (400, {"Error": "PUT TOKEN Method: Missing required field(s) or field(s) are invalid"})
 	}
 }
 
@@ -770,7 +769,7 @@ handlers._tokens.put = (data, callback) => {
 // Required data : id
 // Optional data : none
 handlers._tokens.delete = (data, callback) => {
-	const id			= typeof (data.queryStringObject.id) === "string" && data.queryStringObject.id.trim ().length === 20 ? data.queryStringObject.id.trim () : false
+	const id = typeof (data.queryStringObject.id) === "string" && data.queryStringObject.id.trim ().length === 20 ? data.queryStringObject.id.trim () : false
 
 	if (id) {
 		// Lookup the token
@@ -782,19 +781,18 @@ handlers._tokens.delete = (data, callback) => {
 						callback (200, tokenData)
 					}
 					else {
-						callback (500, {"Error": "DELETE Token Method: Could not delete the specified token"})
+						callback (500, {"Error": "DELETE TOKEN Method: Could not delete the specified token"})
 					}
-
 				})
 
 			}
 			else {
-				callback (400, {"Error": "DELETE Token Method: Could not find the specified token"})
+				callback (400, {"Error": "DELETE TOKEN Method: Could not find the specified token"})
 			}
 		})
 	}
 	else {
-		callback (400, {"Error": "DELETE Token method: Missing required fields"})
+		callback (400, {"Error": "DELETE TOKEN method: Missing required fields"})
 	}
 }
 
@@ -839,15 +837,15 @@ handlers._checks = {}
 // Optional data : none
 handlers._checks.post = (data, callback) => {
 	// Validate inputs
-	const protocol		  = typeof (data.payload.protocol) === "string" && ["http", "https"].indexOf (data.payload.protocol) > -1 ? data.payload.protocol : false
-	const url			  = typeof (data.payload.url) === "string" &&  data.payload.url.trim ().length > 0 ? data.payload.url.trim () : false
-	const method		  = typeof (data.payload.method) === "string" && ["post", "get", "put", "delete"].indexOf (data.payload.method) > -1 ? data.payload.method : false
-	const successCodes	  = typeof (data.payload.successCodes) === "object" &&  data.payload.successCodes instanceof Array && data.payload.successCodes.length > 0 ? data.payload.successCodes : false
-	const timeoutSeconds  = typeof (data.payload.timeoutSeconds) === "number" &&  data.payload.timeoutSeconds % 1 === 0 && data.payload.timeoutSeconds >= 1 && data.payload.timeoutSeconds <= 5 ? data.payload.timeoutSeconds : false
+	const protocol			= typeof (data.payload.protocol) === "string" && ["http", "https"].indexOf (data.payload.protocol) > -1 ? data.payload.protocol : false
+	const url				= typeof (data.payload.url) === "string" &&  data.payload.url.trim ().length > 0 ? data.payload.url.trim () : false
+	const method			= typeof (data.payload.method) === "string" && ["post", "get", "put", "delete"].indexOf (data.payload.method) > -1 ? data.payload.method : false
+	const successCodes		= typeof (data.payload.successCodes) === "object" &&  data.payload.successCodes instanceof Array && data.payload.successCodes.length > 0 ? data.payload.successCodes : false
+	const timeoutSeconds	= typeof (data.payload.timeoutSeconds) === "number" &&  data.payload.timeoutSeconds % 1 === 0 && data.payload.timeoutSeconds >= 1 && data.payload.timeoutSeconds <= 5 ? data.payload.timeoutSeconds : false
 
 	if (protocol && url && method && successCodes && timeoutSeconds) {
 		// Get the token from the headers
-		const token		  = typeof (data.headers.token) === "string" ? data.headers.token : false
+		const token = typeof (data.headers.token) === "string" ? data.headers.token : false
 
 		// Lookup the user by reading the token
 		_data.read ("tokens", token, (err, tokenData) => {
@@ -926,7 +924,7 @@ handlers._checks.post = (data, callback) => {
 // Optional data ; none
 handlers._checks.get = (data, callback) => {
 	// Check that id is valid
-	const id			= typeof (data.queryStringObject.id) === "string" && data.queryStringObject.id.trim ().length === 20 ? data.queryStringObject.id.trim () : false
+	const id = typeof (data.queryStringObject.id) === "string" && data.queryStringObject.id.trim ().length === 20 ? data.queryStringObject.id.trim () : false
 
 	if (id) {
 		// lookup the check
@@ -955,7 +953,7 @@ handlers._checks.get = (data, callback) => {
 		})
 	}
 	else {
-		console.log (data)
+		console.log ("GET Checks Method", data)
 		callback (400, {"Error": "GET Checks Method: Missing required field, or input are invalid "})
 	}
 }
@@ -965,14 +963,14 @@ handlers._checks.get = (data, callback) => {
 // Optional data : protocol, url, method, successCodes, timeoutSeconds (one must be set)
 handlers._checks.put = (data, callback) => {
 	// Check Required field
-	const id			  = typeof (data.payload.id) === "string" && data.payload.id.trim ().length === 20 ? data.payload.id.trim () : false
+	const id				= typeof (data.payload.id) === "string" && data.payload.id.trim ().length === 20 ? data.payload.id.trim () : false
 
 	// Check optional field
-	const protocol		  = typeof (data.payload.protocol) === "string" && ["https, http"].indexOf (data.payload.protocol) > -1 ? data.payload.protocol : false
-	const url			  = typeof (data.payload.url) === "string" && data.payload.url.trim ().length > 0 ? data.payload.url.trim () : false
-	const method		  = typeof (data.payload.method) === "string" && ["post", "get", "put", "delete"].indexOf (data.payload.method) > -1 ? data.payload.method : false
-	const successCodes	  = typeof (data.payload.successCodes) === "object" && data.payload.successCodes instanceof Array && data.payload.successCodes.length > 0 ? data.payload.successCodes : false
-	const timeoutSeconds  = typeof (data.payload.timeoutSeconds) === "number" && data.payload.timeoutSeconds % 1 === 0 && data.payload.timeoutSeconds >= 1 && data.payload.timeoutSeconds <= 5 ? data.payload.timeoutSeconds : false
+	const protocol			= typeof (data.payload.protocol) === "string" && ["https, http"].indexOf (data.payload.protocol) > -1 ? data.payload.protocol : false
+	const url				= typeof (data.payload.url) === "string" && data.payload.url.trim ().length > 0 ? data.payload.url.trim () : false
+	const method			= typeof (data.payload.method) === "string" && ["post", "get", "put", "delete"].indexOf (data.payload.method) > -1 ? data.payload.method : false
+	const successCodes		= typeof (data.payload.successCodes) === "object" && data.payload.successCodes instanceof Array && data.payload.successCodes.length > 0 ? data.payload.successCodes : false
+	const timeoutSeconds	= typeof (data.payload.timeoutSeconds) === "number" && data.payload.timeoutSeconds % 1 === 0 && data.payload.timeoutSeconds >= 1 && data.payload.timeoutSeconds <= 5 ? data.payload.timeoutSeconds : false
 
 	// Error if id is invalid
 	if (id) {
@@ -1008,7 +1006,6 @@ handlers._checks.put = (data, callback) => {
 							_data.update ("checks", id, checkData, (err) => {
 								if (!err) {
 									callback (200, checkData)
-
 								}
 								else {
 									callback (500, {"Error": "PUT Checks Method: Could not update the check | internal server error"})
@@ -1023,7 +1020,7 @@ handlers._checks.put = (data, callback) => {
 					})
 				}
 				else {
-					console.log (err)
+					console.log ("PUT Checks Method error", err)
 					callback (403, {"Error": "Check ID did not exist"})
 				}
 			})

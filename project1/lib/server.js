@@ -164,7 +164,7 @@ server.unifiedServer = function (req, res) {
 				debug ("\x1b[36m%s\x1b[0m", method.toUpperCase ()+" /"+trimmedPath+" "+statusCode)
 			}
 			else {
-				debug ("\x1b[31m%s\x1b[0m", method.toUpperCase ()+" /"+trimmedPath+" "+statusCode)
+				debug ("\x1b[31m%s\x1b[0m", method.toUpperCase ()+" /"+trimmedPath+" "+statusCode+payloadString)
 			}
 
 		})

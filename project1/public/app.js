@@ -35,7 +35,7 @@ app.client.request = (headers, path, method, queryStringObject, payload, callbac
 
 			// If at least one query string parameter has already been added, prepend new ones with an ampresand (&)
 			if (counter > 1) {
-				requestUrl+= "&"
+				requestUrl+="&"
 			}
 			// Add the key and value
 			requestUrl+=queryKey+"="+queryStringObject[queryKey]
@@ -97,7 +97,10 @@ app.bindLogoutButton = () => {
 }
 
 // Log the user out then redirect them
-app.logUserOut = () => {
+app.logUserOut = (redirectUser) => {
+	// Set redirectUser default to true
+	redirect = typeof (redirectUser) === "boolean" ? redirectUser : true
+
 	// Get the current token id
 	const tokenId = typeof (app.config.sessionToken.id) === "string" ? app.config.sessionToken.id : false
 
@@ -111,7 +114,10 @@ app.logUserOut = () => {
 		app.setSessionToken (false)
 
 		// send the user to the logged out page
-		window.location = "/session/deleted"
+		if (redirectUser) {
+			window.location = "/session/deleted"
+		}
+
 	})
 }
 
@@ -119,86 +125,92 @@ app.logUserOut = () => {
 app.bindForms = function () {
 
 	if (document.querySelector ("form")) {
-		document.querySelector ("form").addEventListener ("submit",function (e) {
 
-			// Stop it from submitting
-			e.preventDefault ()
-			const formId	= this.id
-			const path		= this.action
-			const method	= this.method.toUpperCase()
+		const allForms = document.querySelectorAll ("form")
+		for (let i = 0; i < allForms.length; i++) {
+			allForms[i].addEventListener ("submit", function (e) {
 
-			// Hide the error message (if it's currently shown due to a previous error)
-			document.querySelector ("#"+formId+" .formError").style.display = 'hidden'
+				// Stop it from submitting
+				e.preventDefault ()
+				const formId	= this.id
+				const path		= this.action
+				const method	= this.method.toUpperCase()
 
-			// Hide the success message (if it's currently show due to a previous error)
-			if (document.querySelector ("#"+formId+" .formSuccess")) {
-				document.querySelector ("#"+formId+" .formSuccess").style.display = "none"
-			}
+				// Hide the error message (if it's currently shown due to a previous error)
+				document.querySelector ("#"+formId+" .formError").style.display = 'hidden'
 
-			// Turn the inputs into a payload
-			const payload	= {}
-			const elements	= this.elements
-			for (let i = 0; i < elements.length; i++) {
-				if (elements[i].type !== 'submit') {
-					const classOfElement	= typeof (elements[i].classList.value) === "string" && elements[i].classList.value > 0 ? elements[i].classList.value : ""
-					const valueOfElement	= elements[i].type === 'checkbox' ? elements[i].checked : elements[i].value
-					const elementIsChecked	= elements[i].checked
-					//payload[elements[i].name] = valueOfElement
+				// Hide the success message (if it's currently show due to a previous error)
+				if (document.querySelector ("#"+formId+" .formSuccess")) {
+					document.querySelector ("#"+formId+" .formSuccess").style.display = "none"
+				}
 
-					// Override the method of the form if the input's name is _method
-					let nameOfElements	= elements[i].name
-					if (nameOfElements === "_method") {
-						method = valueOfElement
-					}
-					else {
-						// Create an payload field named "method" if the elements name is actually httpmethod
-						if (nameOfElements === "httpmethod") {
-							nameOfElements = "method"
-						}
+				// Turn the inputs into a payload
+				const payload	= {}
+				const elements	= this.elements
+				for (let i = 0; i < elements.length; i++) {
+					if (elements[i].type !== 'submit') {
+						const classOfElement	= typeof (elements[i].classList.value) === "string" && elements[i].classList.value > 0 ? elements[i].classList.value : ""
+						const valueOfElement	= elements[i].type === 'checkbox' ? elements[i].checked : elements[i].value
+						const elementIsChecked	= elements[i].checked
+						//payload[elements[i].name] = valueOfElement
 
-						if (classOfElement.indexOf ("multiselect") > -1) {
-							if (elementIsChecked) {
-								payload[nameOfElements] = typeof (payload[nameOfElements]) === "object" && payload[nameOfElements] instanceof Array ? payload[nameOfElements] : []
-								payload[nameOfElements].push (valueOfElement)
-							}
+						// Override the method of the form if the input's name is _method
+						let nameOfElements = elements[i].name
+						if (nameOfElements === "_method") {
+							method = valueOfElement
 						}
 						else {
-							payload [nameOfElements] = valueOfElement
+							// Create an payload field named "method" if the elements name is actually httpmethod
+							if (nameOfElements === "httpmethod") {
+								nameOfElements = "method"
+							}
+
+							if (classOfElement.indexOf ("multiselect") > -1) {
+								if (elementIsChecked) {
+									payload[nameOfElements] = typeof (payload[nameOfElements]) === "object" && payload[nameOfElements] instanceof Array ? payload[nameOfElements] : []
+									payload[nameOfElements].push (valueOfElement)
+								}
+							}
+							else {
+								payload [nameOfElements] = valueOfElement
+							}
 						}
-					}
 
+					}
 				}
-			}
 
-			// If the method is DELETE, the payload should be a queryStringObject instead
-			const queryStringObject = method === "DELETE" ? payload : {}
+				// If the method is DELETE, the payload should be a queryStringObject instead
+				const queryStringObject = method === "DELETE" ? payload : {}
 
-			// Call the API
-			app.client.request (undefined, path, method, undefined, payload, (statusCode, responsePayload) => {
-				// Display an error on the form if needed
-				if(statusCode !== 200) {
+				// Call the API
+				app.client.request (undefined, path, method, undefined, payload, (statusCode, responsePayload) => {
+					// Display an error on the form if needed
+					if(statusCode !== 200) {
 
-					if (statusCode == 403) {
-						// log the user out
-						app.logUserOut ()
+						if (statusCode == 403) {
+							// log the user out
+							app.logUserOut ()
+						}
+						else {
+							// Try to get the error from the api, or set a default error message
+							const error = typeof(responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again'
+
+							// Set the formError field with the error text
+							document.querySelector ("#"+formId+" .formError").innerHTML = error
+
+							// Show (unhide) the form error field on the form
+							document.querySelector ("#"+formId+" .formError").style.display = 'block'
+						}
+
+					} else {
+						// If successful, send to form response processor
+						app.formResponseProcessor(formId, payload, responsePayload)
 					}
-					else {
-						// Try to get the error from the api, or set a default error message
-						const error = typeof(responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again'
+				})
 
-						// Set the formError field with the error text
-						document.querySelector ("#"+formId+" .formError").innerHTML = error
-
-						// Show (unhide) the form error field on the form
-						document.querySelector ("#"+formId+" .formError").style.display = 'block'
-					}
-
-				} else {
-					// If successful, send to form response processor
-					app.formResponseProcessor(formId, payload, responsePayload)
-				}
 			})
-		})
+		}
+
 	}
 }
 
