@@ -25,7 +25,7 @@ lib.create = function (dir, file, data, callback) {
 		// if there's not an error and there is fileDescriptor
 		if (!err && fileDescriptor) {
 			// Convert data to string
-			let stringData = JSON.stringify (data)
+			let stringData = JSON.stringify (data, null, 2)
 
 			// Write to file and close it
 			fs.writeFile (fileDescriptor, stringData, function (err) {
@@ -72,7 +72,7 @@ lib.update = function (dir, file, data, callback) {
 	fs.open (lib.baseDir+dir+"/"+file+".json", "r+", function (err, fileDescriptor) {
 		if (!err && fileDescriptor) {
 			// Convert data to string
-			const stringData = JSON.stringify (data)
+			const stringData = JSON.stringify (data, null, 2)
 
 			// Truncate the file | truncate : memotong
 			fs.ftruncate (fileDescriptor, function (err) {
