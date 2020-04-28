@@ -63,8 +63,87 @@ cli.responders = {}
 
 // Help / Man
 cli.responders.help = () => {
-	console.log ("You asked for help")
+	const commands = {
+		"exit"								: "Kill The CLI (and the rest of the application)",
+		"man"								: "Show this help page",
+		"help"								: "Alias of the 'man' command ",
+		"stats"								: "Get statistic on the underlying operating system and resource utilization",
+		"list users"						: "Show a list of all the registered (undeleted) users in the system",
+		"more user info --{userId}"			: "Show details of a specified user",
+		"list checks --up --down"			: "Show a list of all the active checks in the system, including their state, the '--up' and '--down' flags are both optimal",
+		"more check info --{checkId}"		: "Show detail of a specified check",
+		"list logs"							: "Show a list of all the log files available to be read (compressed and uncompressed) ",
+		"more log info --{logFileName}"		: "Show details of a specified log file"
+	}
+
+	// Show a header for the help page that is  a wide as the screen
+	cli.horizontalLine ()
+	cli.centered ("CLI MANUAL")
+	cli.horizontalLine ()
+	cli.verticalSpace (2)
+
+	// Show each command, followed by its explanation, in white and yellow respectively
+	for (let key in commands) {
+		if (commands.hasOwnProperty (key)) {
+			const value = commands[key]
+			let line = "\x1b[33m "+key+"\x1b[0m"
+			const padding = 50 - line.length
+
+			for (let i = 0; i < padding; i++) {
+				line += " "
+			}
+			line += value
+			console.log (line)
+			cli.verticalSpace ()
+		}
+	}
+	cli.verticalSpace (1)
+
+	// End with another horizontal line
+	cli.horizontalLine
 }
+
+// Create a vertical space
+cli.verticalSpace = (lines) => {
+	lines = typeof (lines) === "number" && lines > 0 ? lines : -1
+	for (let i = 0; i < lines; i++) {
+		console.log ("")
+	}
+}
+
+// Create a horizontal line across the screen
+cli.horizontalLine = () => {
+
+	// Get the available screen size
+	const width = process.stdout.columns
+
+	// Put in enough dashes to go across the screen
+	let line = ""
+	for (let i = 0; i < width; i++) {
+		line += "-"
+	}
+	console.log (line)
+}
+
+// Create centered text on the screen
+cli.centered = (str) => {
+	str = typeof (str) === "string" && str.trim ().length > 0 ? str.trim () : ""
+
+	// Get the available screen size
+	let width = process.stdout.columns
+
+	// Calculate the left padding there should be
+	let leftPadding = Math.floor ( (width - str.length) / 2)
+
+	// Put in left padded spaces before the string itself
+	let line = ""
+	for (let i = 0; i < leftPadding; i++) {
+		line += " "
+	}
+	line += str
+	console.log (line)
+}
+
 
 // Exit
 cli.responders.exit = () => {
@@ -101,21 +180,6 @@ cli.responders.listLogs = () => {
 cli.responders.moreLogInfo = (str) => {
 	console.log ("You asked to log info", str)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // Input processor
@@ -159,7 +223,7 @@ cli.processInput = (str) => {
 
 // Init script
 cli.init = () => {
-	console.log ('\x1b[34m%s\x1b[0m', `The CLI is running"`)
+	console.log ('\x1b[34m%s\x1b[0m', `The CLI is running`)
 
 	// Start the interface
 	const _interface = readline.createInterface ({
@@ -185,9 +249,6 @@ cli.init = () => {
 		process.exit (0)
 	})
 }
-
-
-
 
 
 // Export the module
