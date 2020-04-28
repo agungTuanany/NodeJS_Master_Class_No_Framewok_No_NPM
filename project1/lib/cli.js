@@ -68,7 +68,7 @@ cli.responders.help = () => {
 
 // Exit
 cli.responders.exit = () => {
-	console.log ("you asked for exit")
+	process.exit (0)
 }
 
 // Stats
