@@ -229,7 +229,23 @@ cli.responders.listUsers = () => {
 
 // More user info
 cli.responders.moreUserInfo = (str) => {
-	console.log ("you asked for more user info", str)
+	// Get the ID from the string
+	let arr = str.split ("--")
+	const userId = typeof (arr[1]) === "string" && arr[1].trim ().length > 0 ? arr[1].trim () : false
+
+	if (userId) {
+		// Lookup the users
+		_data.read ("users", userId, (err, userData) => {
+			if (!err && userData) {
+				// Remove the hashed password
+				delete userData.hashedPassword
+
+				// Print the JSON with text highlighting
+				cli.verticalSpace ()
+				console.dir (userData,  {"colors": true})
+			}
+		})
+	}
 }
 
 cli.responders.listChecks = (str) => {
