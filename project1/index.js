@@ -16,7 +16,7 @@ const app = {}
 
 
 // init function
-app.init = () => {
+app.init = (callback) => {
 	// Start the server
 	server.init ()
 
@@ -24,13 +24,16 @@ app.init = () => {
 	workers.init ()
 
 	// Start the cli, but make sure it start last
-	setTimeout ( () => [
+	setTimeout ( () => {
 		cli.init ()
-	], 50)
+		callback ()
+	}, 50)
 }
 
-// Execute
-app.init ()
+// Self invoking onlty if required directly
+if (require.main === module) {
+	app.init (function (){} )
+}
 
 
 // Export the app. Usefull in testing
