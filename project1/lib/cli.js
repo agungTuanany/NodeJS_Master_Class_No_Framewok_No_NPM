@@ -14,6 +14,7 @@ const debug				= util.debuglog ("cli")
 
 const _data				= require ("./data")
 const _logs				= require ("./logs")
+const helpers			= require ("./helpers")
 
 
 class _events extends events {}
@@ -313,7 +314,27 @@ cli.responders.listLogs = () => {
 }
 
 cli.responders.moreLogInfo = (str) => {
-	console.log ("You asked to log info", str)
+	// Get the logFileName from the string
+	let arr = str.split ("--")
+	const logFileName = typeof (arr[1]) === "string" && arr[1].trim ().length > 0 ? arr[1].trim () : false
+
+	if (logFileName) {
+		cli.verticalSpace ()
+		// Decompress the log
+		_logs.decompress (logFileName, (err, strData) => {
+			if (!err && strData) {
+				// Split into lines
+				const arr = strData.split ("\n")
+				arr.forEach ( (jsonString) => {
+					const logObject = helpers.parseJsonToObject (jsonString)
+					if (logObject && JSON.stringify (logObject) !== "{}") {
+						console.dir (logObject, {"colors": true})
+						cli.verticalSpace ()
+					}
+				})
+			}
+		})
+	}
 }
 
 
