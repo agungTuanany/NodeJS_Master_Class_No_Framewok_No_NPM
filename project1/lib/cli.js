@@ -12,6 +12,8 @@ const v8				= require ("v8")
 
 const debug				= util.debuglog ("cli")
 
+const _data				= require ("./data")
+
 
 class _events extends events {}
 const e = new _events ()
@@ -199,7 +201,30 @@ cli.responders.stats = () => {
 
 // List users
 cli.responders.listUsers = () => {
-	console.log ("you asked to list users")
+
+	// Create a header for the users list
+	cli.horizontalLine ()
+	cli.centered ("LIST USERS")
+	cli.horizontalLine ()
+	cli.verticalSpace (1)
+
+	_data.list ("users", (err, userIds) => {
+		if (!err && userIds && userIds.length > 0) {
+			cli.verticalSpace ()
+			userIds.forEach ( (userId) => {
+				_data.read ("users", userId, (err, userData) => {
+					if (!err, userData) {
+						const numberOfChecks = typeof (userData.checks) == "object" && userData.checks instanceof Array && userData.checks.length > 0 ? userData.checks : 0
+						let line = "Name:"+userData.firstName+" "+userData.lastName+", phone: "+userData.phone+ ", checks: "+numberOfChecks
+
+						console.log (line)
+						cli.verticalSpace (1)
+						cli.horizontalLine ()
+					}
+				})
+			})
+		}
+	})
 }
 
 // More user info
@@ -257,7 +282,7 @@ cli.processInput = (str) => {
 		})
 
 		if (!matchFound) {
-			console.log ("Your input not on list, pls try again or write man on console")
+			console.log ("Your input not on list, please try again or write 'man' on console")
 		}
 	}
 }
