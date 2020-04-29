@@ -78,7 +78,7 @@ cli.responders.help = () => {
 		"stats"								: "Get statistic on the underlying operating system and resource utilization",
 		"list users"						: "Show a list of all the registered (undeleted) users in the system",
 		"more user info --{userId}"			: "Show details of a specified user",
-		"list checks --up --down"			: "Show a list of all the active checks in the system, including their state, the '--up' and '--down' flags are both optimal",
+		"list checks --up --down"			: "Show a list of all the active checks in the system, including their state, the '--up' and '--down' flags are both optional",
 		"more check info --{checkId}"		: "Show detail of a specified check",
 		"list logs"							: "Show a list of all the log files available to be read (compressed and uncompressed)",
 		"more log info --{logFileName}"		: "Show details of a specified log file"

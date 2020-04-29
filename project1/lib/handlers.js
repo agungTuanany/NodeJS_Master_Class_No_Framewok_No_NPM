@@ -367,6 +367,12 @@ handlers.public = (data, callback) =>{
  *
 */
 
+// Example error
+handlers.exampleError = (data, callback) => {
+	const err = new Error ("This an example error from handlers.exampleError")
+	throw (err)
+}
+
 // Users
 handlers.users = (data, callback) => {
 	const acceptableMethod = ["post", "get", "put", "delete"]

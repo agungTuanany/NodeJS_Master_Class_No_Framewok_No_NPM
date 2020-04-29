@@ -93,83 +93,100 @@ server.unifiedServer = function (req, res) {
 		}
 
 		// Route the request to the handler specified in the router
-		choosenHandler (data, function (statusCode, payload, contentType) {
-
-			// Determine the type of response (fallback to JSON)
-			contentType = typeof (contentType) === "string" ? contentType : "json"
-
-			// Use the status code called back by the handler, or default to 200
-			statusCode = typeof (statusCode) === "number" ? statusCode : 200
-
-			// Return the response-part that are content-specific
-			let payloadString = ""
-
-			if (contentType === "json") {
-				res.setHeader ("Content-Type", "application/json")
-				// Use the payload called back the handler, or default to an empty object
-				payload = typeof (payload) === "object" ? payload : {}
-				// Convert the payload to a string
-				payloadString = JSON.stringify (payload)
-			}
-
-			if (contentType === "html") {
-				res.setHeader ("Content-Type", "text/html")
-				// Use the payload called back the handler, or default to an empty string
-				payloadString = typeof (payload) === "string" ? payload : ""
-			}
-
-			if (contentType === "favicon") {
-				res.setHeader ("Content-Type", "image/x-icon")
-				// Use the payload called back the handler, or default to an empty string
-				payloadString = typeof (payload) !== "undefined" ? payload : ""
-			}
-
-			if (contentType === "css") {
-				res.setHeader ("Content-Type", "text/css")
-				// Use the payload called back the handler, or default to an empty string
-				payloadString = typeof (payload) !== "undefined" ? payload : ""
-			}
-
-			// XXX XXX XXX FIXME: ALL PNG, JPG return response a dimension into 0X0,in firefox, brave (brave same as chromium)
-			if (contentType === "png") {
-				res.setHeader ("Content-Type", "image/png")
-				// Use the payload called back the handler, or default to an empty string
-				payloadString = typeof (payload) !== "undefined" ? payload : ""
-			}
-
-			if (contentType === "jpg") {
-				res.setHeader ("Content-Type", "image/png")
-				// Use the payload called back the handler, or default to an empty string
-				payloadString = typeof (payload) !== "undefined" ? payload : ""
-			}
-
-			if (contentType === "js") {
-				res.setHeader ("Content-Type", "application/javascript")
-				// Use the payload called back the handler, or default to an empty string
-				payloadString = typeof (payload) !== "undefined" ? payload : ""
-			}
-
-			if (contentType === "plain") {
-				res.setHeader ("Content-Type", "text/plain")
-				// Use the payload called back the handler, or default to an empty string
-				payloadString = typeof (payload) !== "undefined" ? payload : ""
-			}
-
-			// return the response-part that are common to all content-types
-			res.writeHead (statusCode)
-			res.end (payloadString)
-
-			// If the response is 200, print green otherwise print red
-			if (statusCode === 200) {
-				debug ("\x1b[36m%s\x1b[0m", method.toUpperCase ()+" /"+trimmedPath+" "+statusCode)
-			}
-			else {
-				debug ("\x1b[31m%s\x1b[0m", method.toUpperCase ()+" /"+trimmedPath+" "+statusCode+payloadString)
-			}
-
-		})
+		try {
+			choosenHandler (data, function (statusCode, payload, contentType) {
+				server.processHandlerResponse (res, method, trimmedPath, statusCode, payload, contentType)
+			})
+		}
+		catch (e) {
+			debug (e)
+			server.processHandlerResponse (res, method, trimmedPath, 500, {"Error" : "An unknown error has occured | internal server error"}, "json")
+		}
 	})
 }
+
+// Process the response from the handler
+server.processHandlerResponse = (res, method, trimmedPath, statusCode, payload, contentType) => {
+
+	// Determine the type of response (fallback to JSON)
+	contentType = typeof (contentType) === "string" ? contentType : "json"
+
+	// Use the status code called back by the handler, or default to 200
+	statusCode = typeof (statusCode) === "number" ? statusCode : 200
+
+	// Return the response-part that are content-specific
+	let payloadString = ""
+
+	if (contentType === "json") {
+		res.setHeader ("Content-Type", "application/json")
+		// Use the payload called back the handler, or default to an empty object
+		payload = typeof (payload) === "object" ? payload : {}
+		// Convert the payload to a string
+		payloadString = JSON.stringify (payload)
+	}
+
+	if (contentType === "html") {
+		res.setHeader ("Content-Type", "text/html")
+		// Use the payload called back the handler, or default to an empty string
+		payloadString = typeof (payload) === "string" ? payload : ""
+	}
+
+	if (contentType === "favicon") {
+		res.setHeader ("Content-Type", "image/x-icon")
+		// Use the payload called back the handler, or default to an empty string
+		payloadString = typeof (payload) !== "undefined" ? payload : ""
+	}
+
+	if (contentType === "css") {
+		res.setHeader ("Content-Type", "text/css")
+		// Use the payload called back the handler, or default to an empty string
+		payloadString = typeof (payload) !== "undefined" ? payload : ""
+	}
+
+	// XXX XXX XXX FIXME: ALL PNG, JPG return response a dimension into 0X0,in firefox, brave (brave same as chromium)
+	if (contentType === "png") {
+		res.setHeader ("Content-Type", "image/png")
+		// Use the payload called back the handler, or default to an empty string
+		payloadString = typeof (payload) !== "undefined" ? payload : ""
+	}
+
+	if (contentType === "jpg") {
+		res.setHeader ("Content-Type", "image/png")
+		// Use the payload called back the handler, or default to an empty string
+		payloadString = typeof (payload) !== "undefined" ? payload : ""
+	}
+
+	if (contentType === "js") {
+		res.setHeader ("Content-Type", "application/javascript")
+		// Use the payload called back the handler, or default to an empty string
+		payloadString = typeof (payload) !== "undefined" ? payload : ""
+	}
+
+	if (contentType === "plain") {
+		res.setHeader ("Content-Type", "text/plain")
+		// Use the payload called back the handler, or default to an empty string
+		payloadString = typeof (payload) !== "undefined" ? payload : ""
+	}
+
+	// return the response-part that are common to all content-types
+	res.writeHead (statusCode)
+	res.end (payloadString)
+
+	// If the response is 200, print green otherwise print red
+	if (statusCode === 200) {
+		debug ("\x1b[36m%s\x1b[0m", method.toUpperCase ()+" /"+trimmedPath+" "+statusCode)
+	}
+	else {
+		debug ("\x1b[31m%s\x1b[0m", method.toUpperCase ()+" /"+trimmedPath+" "+statusCode+payloadString)
+	}
+
+}
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////
 
 
@@ -191,7 +208,10 @@ server.router = {
 	"api/tokens"		: handlers.tokens,
 	"api/checks"		: handlers.checks,
 	"api/users"			: handlers.users,
-	"favicon.ico"		: handlers.favicon
+	"favicon.ico"		: handlers.favicon,
+	"examples/error"	: handlers.exampleError,
+	"404"				: handlers.notFound			  // XXX TODO: throw all not found handler into 404
+
 }
 ///////////////////////////////////////////////////////////
 
