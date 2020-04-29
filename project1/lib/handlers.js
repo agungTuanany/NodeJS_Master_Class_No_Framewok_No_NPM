@@ -8,6 +8,8 @@
 const _data		  = require ("./data")
 const helpers	  = require ("./helpers")
 const config	  = require ("./config")
+const _url		  = require ("url")
+const dns		  = require ("dns")
 
 // Define the handlers
 let handlers = {}
@@ -868,44 +870,56 @@ handlers._checks.post = (data, callback) => {
 							// Create a random id for the check
 							const checkId = helpers.createRandomString(20)
 
-							// create the check object, and include the user's phone
-							const checkObject = {
-								"checkId"		  : checkId,
-								"userPhone"		  : userPhone,
-								"protocol"		  : protocol,
-								"url"			  : url,
-								"method"		  : method,
-								"successCodes"	  : successCodes,
-								"timeoutSeconds"  : timeoutSeconds
-							}
+							// Verify that the URL given has DNS entries (and therefore can resolve)
+							const parsedUrl = _url.parse (protocol+"://"+url, true)
+							const hostName = typeof (parsedUrl.hostName) === "string" && parsedUrl.hostname.length > 0 ? parsedUrl.hostname : false
+							dns.resolve (hostName, (err, records) => {
+								if (!err && records) {
 
-							// Save the object
-							_data.create ("checks", checkId, checkObject, (err) => {
-								if (!err) {
-									// Add the check id to the user's object
-									userData.checks	= userChecks
-									userData.checks.push (checkId)
+									// create the check object, and include the user's phone
+									const checkObject = {
+										"checkId"		  : checkId,
+										"userPhone"		  : userPhone,
+										"protocol"		  : protocol,
+										"url"			  : url,
+										"method"		  : method,
+										"successCodes"	  : successCodes,
+										"timeoutSeconds"  : timeoutSeconds
+									}
 
-									_data.update ("users", userPhone, userData, (err) => {
+									// Save the object
+									_data.create ("checks", checkId, checkObject, (err) => {
 										if (!err) {
-											// Return the data about the new chec
-											callback (200, checkObject)
+											// Add the check id to the user's object
+											userData.checks	= userChecks
+											userData.checks.push (checkId)
+
+											_data.update ("users", userPhone, userData, (err) => {
+												if (!err) {
+													// Return the data about the new chec
+													callback (200, checkObject)
+
+												}
+												else {
+													callback (500, {"Error": "POST Checks Method: could not update the user with the new chec"})
+												}
+											})
 
 										}
 										else {
-											callback (500, {"Error": "POST Checks Method: could not update the user with the new chec"})
+											callback (500, {"Error": "POST Checks Method: Could not create the new check"})
 										}
 									})
 
 								}
 								else {
-									callback (500, {"Error": "POST Checks Method: Could not create the new check"})
+									callback (400, {"Error": "The hostname of the URL entered did not resolve to any DNS entries"})
 								}
 							})
 
 						}
 						else {
-							callback (400, {"Error": "POST Checks Method: The user already has the maximum number checks ('+config.maxChecks+')"})
+							callback (400, {'Error' : 'POST Checks Method: The user already has the maximum number of checks ('+config.maxChecks+').'})
 						}
 					}
 					else {

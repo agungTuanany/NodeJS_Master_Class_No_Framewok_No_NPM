@@ -11,7 +11,7 @@ const path		= require ("path")
 const helpers	= require ("./helpers")
 
 // Container for the module (to be exported)
-let lib = {}
+const lib = {}
 
 // Base directory of the data folder
 lib.baseDir = path.join (__dirname, "/../.data/")
