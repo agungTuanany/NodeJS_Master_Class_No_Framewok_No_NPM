@@ -248,8 +248,34 @@ cli.responders.moreUserInfo = (str) => {
 	}
 }
 
+// XXX TODO: Since I don't have any checks data, I'm not test it yet, please test it XXX
 cli.responders.listChecks = (str) => {
-	console.log ("you asked to list checks", str)
+	_data.list ("checks", (err, checksIds) => {
+		if (!err && checksIds && checksIds.length > 0) {
+			cli.verticalSpace ()
+			checksIds.forEach ( (checkId) => {
+				_data.read ("checks", checkId, (err, checkData) => {
+					let includeCheck	= false
+					const lowerString	= str.toLowerCase ()
+
+					// Get the state, default to down
+					const state = typeof (checkData.state) === "string" ? checkData.state : "down"
+
+					// Get the state, default to unknown
+					const stateOrUnknown = typeof (checkData.state) === "string" ? checkData.state : "unknown"
+
+					// If the user has specified the state, or hasn't specified any state, include the current check accordingly
+					if (lowerString.indexOf ("--"+state) > -1 || (lowerString.indexOf ("--down") === -1 && lowerString.indexOf ("--up") === -1)) {
+						const line = "ID: "+checkData.id+" "+checkData.method.toUpperCase ()+" "+checkData.protocol+"://"+checkData.url+" State:"+stateOrUnknown
+						console.log (line)
+						cli.verticalSpace ()
+					}
+
+				})
+			})
+		}
+
+	})
 }
 
 cli.responders.moreCheckInfo = (str) => {
