@@ -61,10 +61,10 @@ lib.list = (includeCompressedLogs, callback) => {
 				}
 
 			});
-			callback (false,trimmedFileNames);
+			callback (false,trimmedFileNames)
 		}
 		 else {
-			callback (err,data); }
+			callback (err,data) }
 	})
 }
 

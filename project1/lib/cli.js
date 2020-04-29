@@ -13,6 +13,7 @@ const v8				= require ("v8")
 const debug				= util.debuglog ("cli")
 
 const _data				= require ("./data")
+const _logs				= require ("./logs")
 
 
 class _events extends events {}
@@ -78,7 +79,7 @@ cli.responders.help = () => {
 		"more user info --{userId}"			: "Show details of a specified user",
 		"list checks --up --down"			: "Show a list of all the active checks in the system, including their state, the '--up' and '--down' flags are both optimal",
 		"more check info --{checkId}"		: "Show detail of a specified check",
-		"list logs"							: "Show a list of all the log files available to be read (compressed and uncompressed) ",
+		"list logs"							: "Show a list of all the log files available to be read (compressed and uncompressed)",
 		"more log info --{logFileName}"		: "Show details of a specified log file"
 	}
 
@@ -298,7 +299,17 @@ cli.responders.moreCheckInfo = (str) => {
 }
 
 cli.responders.listLogs = () => {
-	console.log ("You asked to list logs")
+	_logs.list (true, (err, logFileNames) => {
+		if (!err && logFileNames && logFileNames.length > 0) {
+			cli.verticalSpace ()
+			logFileNames.forEach ( (logFileName) => {
+				if (logFileName.indexOf ("-") > -1) {
+					console.log (logFileName)
+					cli.verticalSpace ()
+				}
+			})
+		}
+	})
 }
 
 cli.responders.moreLogInfo = (str) => {
