@@ -45,9 +45,9 @@ lib.append = (file, str, callback) => {
 
 // List all the logs, and optionally include the compressed logs
 lib.list = (includeCompressedLogs, callback) => {
-	fs.readdir (lib.baseDir, (err,data) => {
+	fs.readdir (lib.baseDir, (err, data) => {
 		if (!err && data && data.length > 0) {
-			var trimmedFileNames = []
+			let trimmedFileNames = []
 			data.forEach( (fileName) => {
 
 				// Add the .log files
@@ -61,10 +61,11 @@ lib.list = (includeCompressedLogs, callback) => {
 				}
 
 			});
-			callback (false,trimmedFileNames)
+			callback (false, trimmedFileNames)
 		}
-		 else {
-			callback (err,data) }
+		else {
+			callback (err, data)
+		}
 	})
 }
 

@@ -4,48 +4,15 @@
  *
  */
 
-// Dependencies
-const assert		= require ("assert")
-const helpers		= require ("./../lib/helpers")
-
-
-
-
-
-
 // Application logic for the test number
 const _app = {}
 
 
-
-
 // Container fro the tests
-_app.tests = {
-	"unit"			: {}
-}
+_app.tests = {}
 
-// Assert that getANumber function is returning a number
-_app.tests.unit ["helpers.getANumber should return a number"] = (done) => {
-	const val = helpers.getANumber ()
-	assert.equal (typeof (val), "number")
-	done ()
-}
-
-
-// Assert that getANumber function is returning a 1
-_app.tests.unit ["helpers.getANumber should return 1"] = (done) => {
-	const val = helpers.getANumber ()
-	assert.equal (val, 1)
-	done ()
-}
-
-
-// Assert that getANumber function is returning a 2 | make test fail
-_app.tests.unit ["helpers.getANumber should return 2"] = (done) => {
-	const val = helpers.getANumber ()
-	assert.equal (val, 2)
-	done ()
-}
+// Add on the unit tests
+_app.tests.unit = require ("./unit")
 
 // Count all the test
 _app.countTest = () => {
@@ -144,8 +111,3 @@ _app.produceTestReport = (limit, successes, errors) => {
 
 // Run the test
 _app.runTest ()
-
-
-
-
-
