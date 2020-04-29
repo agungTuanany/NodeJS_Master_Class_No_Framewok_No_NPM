@@ -279,7 +279,22 @@ cli.responders.listChecks = (str) => {
 }
 
 cli.responders.moreCheckInfo = (str) => {
-	console.log ("you asked for more checks info", str)
+	// Get the checkId from the string
+	let arr = str.split ("--")
+	const checkId = typeof (arr[1]) === "string" && arr[1].trim ().length > 0 ? arr[1].trim () : false
+
+	if (checkId) {
+		// Lookup the users
+		_data.read ("checks", checkId, (err, userData) => {
+			if (!err && userData) {
+
+				// Print the JSON with text highlighting
+				cli.verticalSpace ()
+				console.dir (checkId,  {"colors": true})
+				cli.verticalSpace ()
+			}
+		})
+	}
 }
 
 cli.responders.listLogs = () => {
