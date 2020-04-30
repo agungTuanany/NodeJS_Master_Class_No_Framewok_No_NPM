@@ -9,6 +9,7 @@ const util				= require ("util")
 const events			= require ("events")
 const os				= require ("os")
 const v8				= require ("v8")
+const childProcess		= require ("child_process")
 
 const debug				= util.debuglog ("cli")
 
@@ -251,6 +252,7 @@ cli.responders.moreUserInfo = (str) => {
 }
 
 // XXX TODO: Since I don't have any checks data, I'm not test it yet, please test it XXX
+// List Checks
 cli.responders.listChecks = (str) => {
 	_data.list ("checks", (err, checksIds) => {
 		if (!err && checksIds && checksIds.length > 0) {
@@ -280,6 +282,7 @@ cli.responders.listChecks = (str) => {
 	})
 }
 
+// More check info
 cli.responders.moreCheckInfo = (str) => {
 	// Get the checkId from the string
 	let arr = str.split ("--")
@@ -299,20 +302,27 @@ cli.responders.moreCheckInfo = (str) => {
 	}
 }
 
+// List Logs
 cli.responders.listLogs = () => {
-	_logs.list (true, (err, logFileNames) => {
-		if (!err && logFileNames && logFileNames.length > 0) {
-			cli.verticalSpace ()
-			logFileNames.forEach ( (logFileName) => {
-				if (logFileName.indexOf ("-") > -1) {
-					console.log (logFileName)
-					cli.verticalSpace ()
-				}
-			})
-		}
+
+	const ls = childProcess.spawn ("ls", ["./.logs/"])
+	ls.stdout.on ("data", (dataObject) => {
+
+		// Explode into separate lines
+		const dataStr = dataObj.toString ()
+		const logFileNames = dataStr.split {"\n"}
+
+		cli.verticalSpace ()
+		logFileNames.forEach ( (logFileName) => {
+			if (typeof (logFileNames) === "string" && logFileName.length > flogFileName.indexOf ("-") > -1) {
+				console.log (logFileName.trim ().split(".")[0])
+				cli.verticalSpace ()
+			}
+		})
 	})
 }
 
+// More log info
 cli.responders.moreLogInfo = (str) => {
 	// Get the logFileName from the string
 	let arr = str.split ("--")
