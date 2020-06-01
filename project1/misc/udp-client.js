@@ -17,11 +17,5 @@ const messageBuffer = Buffer.from (messageString)
 
 // Send off the message
 client.send (messageBuffer, 6000, "localhost", (err) => {
-	client.close ()
+    client.close ()
 })
-
-
-
-
-
-
