@@ -1,197 +1,191 @@
-"use strict"
+"use strict";
 /*
  * Server-related tasks
  */
 
 // Dependencies
-const http              = require ("http")
-const https             = require ("https")
-const url               = require ("url")
-const stringDecoder     = require ("string_decoder").StringDecoder
-const fs                = require ("fs")
-const path              = require ("path")
-const util              = require ("util")
+const http          = require("http");
+const https         = require("https");
+const url           = require("url");
+const stringDecoder = require("string_decoder").StringDecoder;
+const fs            = require("fs");
+const path          = require("path");
+const util          = require("util");
 
 
 // Buildin dependencies
-const config            = require ("./config.js")
-const handlers          = require ("./handlers")
-const helpers           = require ("./helpers")
+const config   = require("./config.js");
+const handlers = require("./handlers");
+const helpers  = require("./helpers");
 
-
-//#########################################################
 // Debugging
-const debug             = util.debuglog ("server")	  // run NODE_DEBUG=server node index.js
-//#########################################################
-
+const debug= util.debuglog("server"); // run NODE_DEBUG=server node index.js
 
 // Instantiate the server module object
-let server = {}
+let server = {};
 
-
-//#########################################################
 // Instantiate the HTTP server
-server.httpServer = http.createServer ((req,res) => {
-    server.unifiedServer (req,res);
+server.httpServer = http.createServer((req,res) => {
+
+    server.unifiedServer(req,res);
 });
 
 // Instantiate the HTTPS server
 server.httpsServerOptions = {
-    'key': fs.readFileSync (path.join (__dirname,'/../https/key.pem')),
-    'cert': fs.readFileSync (path.join (__dirname,'/../https/cert.pem'))
+    'key': fs.readFileSync (path.join(__dirname,'/../https/key.pem')),
+    'cert': fs.readFileSync (path.join(__dirname,'/../https/cert.pem'))
 };
+
 server.httpsServer = https.createServer (server.httpsServerOptions,(req,res) => {
+
     server.unifiedServer(req,res);
 });
-//#########################################################
 
-
-//#########################################################
 // All the server logic for both 'HTTP' and 'HTTPS' server
-server.unifiedServer = function (req, res) {
+server.unifiedServer = (req, res) => {
 
     // Get the URL and parse it
-    const parsedUrl = url.parse(req.url, true)
+    const parsedUrl = url.parse(req.url, true);
 
     // Get the path
-    const path                  = parsedUrl.pathname
-    const trimmedPath           = path.replace(/^\/+|\/+$/g, "")
+    const path = parsedUrl.pathname;
+    const trimmedPath = path.replace(/^\/+|\/+$/g, "");
 
     // Get the query string as an object
-    const queryStringObject     = parsedUrl.query
+    const queryStringObject = parsedUrl.query;
 
     // Get the HTTP Method
-    const method                = req.method.toLowerCase ()
+    const method = req.method.toLowerCase();
 
     // Get the headers as an object
-    const headers               = req.headers
+    const headers = req.headers;
 
     // Get the Payload, if any
-    const decoder               = new stringDecoder ("utf-8")
-    let buffer                  = ""    // just placeholder for string
+    const decoder = new stringDecoder("utf-8");
+    let buffer = "";     // just placeholder for string
 
     // using Stream
     req.on ("data", data => {
-        buffer += decoder.write (data)
-    })
+
+        buffer += decoder.write(data);
+    });
 
     req.on ("end", () => {
-        buffer += decoder.end ()
+
+        buffer += decoder.end();
 
         // Choose the handler this request should go to. If one is not found,  use notFound handlers
-        let choosenHandler = typeof (server.router[trimmedPath]) !== 'undefined' ? server.router[trimmedPath] : handlers.notFound
+        let choosenHandler = typeof (server.router[trimmedPath]) !== 'undefined' ?
+            server.router[trimmedPath] :
+            handlers.notFound;
 
         // if the request is within the public directory use the public handlers instead
-        choosenHandler = trimmedPath.indexOf ("public/") > -1 ? handlers.public : choosenHandler
+        choosenHandler = trimmedPath.indexOf ("public/") > -1 ?
+            handlers.public :
+            choosenHandler;
 
         // Construct the data object to send to the handler
         let data = {
-            "trimmedPath"           : trimmedPath,
-            "queryStringObject"     : queryStringObject,
-            "method"                : method,
-            "headers"               : headers,
-            "payload"               : helpers.parseJsonToObject (buffer)
-        }
+            "trimmedPath"       : trimmedPath,
+            "queryStringObject" : queryStringObject,
+            "method"            : method,
+            "headers"           : headers,
+            "payload"           : helpers.parseJsonToObject (buffer)
+        };
 
         // Route the request to the handler specified in the router
         try {
-            choosenHandler (data, function (statusCode, payload, contentType) {
-                server.processHandlerResponse (res, method, trimmedPath, statusCode, payload, contentType)
-            })
+            choosenHandler(data, (statusCode, payload, contentType) => {
+
+                server.processHandlerResponse(res, method, trimmedPath, statusCode, payload, contentType);
+            });
         }
         catch (e) {
-            debug (e)
-            server.processHandlerResponse (res, method, trimmedPath, 500, {"Error" : "An unknown error has occured | internal server error"}, "json")
-        }
-    })
-}
+            debug(e);
+            server.processHandlerResponse (res, method, trimmedPath, 500, {
+                "error code": "500",
+                "Error" : "An unknown error has occured | internal server error"
+            }, "json");
+        };
+    });
+};
 
 // Process the response from the handler
 server.processHandlerResponse = (res, method, trimmedPath, statusCode, payload, contentType) => {
 
     // Determine the type of response (fallback to JSON)
-    contentType = typeof (contentType) === "string" ? contentType : "json"
+    contentType = typeof (contentType) === "string" ? contentType : "json";
 
     // Use the status code called back by the handler, or default to 200
-    statusCode = typeof (statusCode) === "number" ? statusCode : 200
+    statusCode = typeof (statusCode) === "number" ? statusCode : 200;
 
     // Return the response-part that are content-specific
-    let payloadString = ""
+    let payloadString = "";
 
     if (contentType === "json") {
-        res.setHeader ("Content-Type", "application/json")
+        res.setHeader("Content-Type", "application/json"):
         // Use the payload called back the handler, or default to an empty object
-        payload = typeof (payload) === "object" ? payload : {}
+        payload = typeof (payload) === "object" ? payload : {};
         // Convert the payload to a string
-        payloadString = JSON.stringify (payload)
-    }
+        payloadString = JSON.stringify (payload);
+    };
 
     if (contentType === "html") {
-        res.setHeader ("Content-Type", "text/html")
+        res.setHeader("Content-Type", "text/html");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) === "string" ? payload : ""
-    }
+        payloadString = typeof (payload) === "string" ? payload : "";
+    };
 
     if (contentType === "favicon") {
-        res.setHeader ("Content-Type", "image/x-icon")
+        res.setHeader("Content-Type", "image/x-icon");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : ""
-    }
+        payloadString = typeof (payload) !== "undefined" ? payload : "";
+    };
 
     if (contentType === "css") {
-        res.setHeader ("Content-Type", "text/css")
+        res.setHeader("Content-Type", "text/css");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : ""
-    }
+        payloadString = typeof (payload) !== "undefined" ? payload : "";
+    };
 
-    // XXX XXX XXX FIXME: ALL PNG, JPG return response a dimension into 0X0,in firefox, brave (brave same as chromium)
+    // @FIXME: ALL PNG, JPG return response a dimension into 0X0,in firefox, brave (brave same as chromium)
     if (contentType === "png") {
-        res.setHeader ("Content-Type", "image/png")
+        res.setHeader("Content-Type", "image/png");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : ""
-    }
+        payloadString = typeof (payload) !== "undefined" ? payload : "";
+    };
 
     if (contentType === "jpg") {
-        res.setHeader ("Content-Type", "image/png")
+        res.setHeader("Content-Type", "image/png");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : ""
-    }
+        payloadString = typeof (payload) !== "undefined" ? payload : "";
+    };
 
     if (contentType === "js") {
-        res.setHeader ("Content-Type", "application/javascript")
+        res.setHeader("Content-Type", "application/javascript");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : ""
-    }
+        payloadString = typeof (payload) !== "undefined" ? payload : "":
+    };
 
     if (contentType === "plain") {
-        res.setHeader ("Content-Type", "text/plain")
+        res.setHeader("Content-Type", "text/plain");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : ""
-    }
+        payloadString = typeof (payload) !== "undefined" ? payload : "";
+    };
 
     // return the response-part that are common to all content-types
-    res.writeHead (statusCode)
-    res.end (payloadString)
+    res.writeHead(statusCode);
+    res.end(payloadString);
 
     // If the response is 200, print green otherwise print red
     if (statusCode === 200) {
-        debug ("\x1b[36m%s\x1b[0m", method.toUpperCase ()+" /"+trimmedPath+" "+statusCode)
+        debug("\x1b[36m%s\x1b[0m", method.toUpperCase()+" /"+trimmedPath+" "+statusCode);
     }
     else {
-        debug ("\x1b[31m%s\x1b[0m", method.toUpperCase ()+" /"+trimmedPath+" "+statusCode+payloadString)
-    }
+        debug("\x1b[31m%s\x1b[0m", method.toUpperCase()+" /"+trimmedPath+" "+statusCode+payloadString);
+    };
+};
 
-}
-//#########################################################
-
-
-
-
-
-
-
-
-//#########################################################
 // Define a Request Router
 server.router = {
     ""                  : handlers.index,
@@ -211,23 +205,26 @@ server.router = {
     "api/users"         : handlers.users,
     "favicon.ico"       : handlers.favicon,
     "examples/error"    : handlers.exampleError,
-    "404"               : handlers.notFound         // XXX TODO: throw all not found handler into 404
-
+    "404"               : handlers.notFound         // @TODO: throw all not found handler into 404
 }
-//#########################################################
-
 
 // Init script
-server.init = function () {
+server.init = () => {
+
     // Start the HTTP server
-    server.httpServer.listen (config.httpPort, () => {
-        console.log ('\x1b[36m%s\x1b[0m', `The server is listening on port "${config.httpPort}"`)
-    })
+    server.httpServer.listen(config.httpPort, () => {
+
+        console.log('\x1b[36m%s\x1b[0m', `The server is listening on port "${config.httpPort}"`);
+    });
 
     server.httpsServer.listen (config.httpsPort, () => {
-        console.log ('\x1b[35m%s\x1b[0m', `The server is listening on port "${config.httpPort}"`)
-    })
-}
+
+        console.log('\x1b[35m%s\x1b[0m', `The server is listening on port "${config.httpPort}"`);
+    });
+};
+
+// Export the module
+module.exports = server;
 
 
 //#########################################################
@@ -260,5 +257,3 @@ server.init = function () {
 ///////////////////////////////////////////////////////////
 
 
-// Export the module
-module.exports = server
