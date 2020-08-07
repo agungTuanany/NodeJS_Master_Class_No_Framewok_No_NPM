@@ -75,7 +75,7 @@ server.unifiedServer = (req, res) => {
         buffer += decoder.end();
 
         // Choose the handler this request should go to. If one is not found,  use notFound handlers
-        let choosenHandler = typeof (server.router[trimmedPath]) !== 'undefined' ?
+        let choosenHandler = typeof(server.router[trimmedPath]) !== 'undefined' ?
             server.router[trimmedPath] :
             handlers.notFound;
 
@@ -102,7 +102,7 @@ server.unifiedServer = (req, res) => {
         }
         catch (e) {
             debug(e);
-            server.processHandlerResponse (res, method, trimmedPath, 500, {
+            server.processHandlerResponse(res, method, trimmedPath, 500, {
                 "error code": "500",
                 "Error" : "An unknown error has occured | internal server error"
             }, "json");
@@ -114,10 +114,10 @@ server.unifiedServer = (req, res) => {
 server.processHandlerResponse = (res, method, trimmedPath, statusCode, payload, contentType) => {
 
     // Determine the type of response (fallback to JSON)
-    contentType = typeof (contentType) === "string" ? contentType : "json";
+    contentType = typeof(contentType) === "string" ? contentType : "json";
 
     // Use the status code called back by the handler, or default to 200
-    statusCode = typeof (statusCode) === "number" ? statusCode : 200;
+    statusCode = typeof(statusCode) === "number" ? statusCode : 200;
 
     // Return the response-part that are content-specific
     let payloadString = "";
@@ -125,52 +125,52 @@ server.processHandlerResponse = (res, method, trimmedPath, statusCode, payload, 
     if (contentType === "json") {
         res.setHeader("Content-Type", "application/json"):
         // Use the payload called back the handler, or default to an empty object
-        payload = typeof (payload) === "object" ? payload : {};
+        payload = typeof(payload) === "object" ? payload : {};
         // Convert the payload to a string
-        payloadString = JSON.stringify (payload);
+        payloadString = JSON.stringify(payload);
     };
 
     if (contentType === "html") {
         res.setHeader("Content-Type", "text/html");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) === "string" ? payload : "";
+        payloadString = typeof(payload) === "string" ? payload : "";
     };
 
     if (contentType === "favicon") {
         res.setHeader("Content-Type", "image/x-icon");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : "";
+        payloadString = typeof(payload) !== "undefined" ? payload : "";
     };
 
     if (contentType === "css") {
         res.setHeader("Content-Type", "text/css");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : "";
+        payloadString = typeof(payload) !== "undefined" ? payload : "";
     };
 
     // @FIXME: ALL PNG, JPG return response a dimension into 0X0,in firefox, brave (brave same as chromium)
     if (contentType === "png") {
         res.setHeader("Content-Type", "image/png");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : "";
+        payloadString = typeof(payload) !== "undefined" ? payload : "";
     };
 
     if (contentType === "jpg") {
         res.setHeader("Content-Type", "image/png");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : "";
+        payloadString = typeof(payload) !== "undefined" ? payload : "";
     };
 
     if (contentType === "js") {
         res.setHeader("Content-Type", "application/javascript");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : "":
+        payloadString = typeof(payload) !== "undefined" ? payload : "":
     };
 
     if (contentType === "plain") {
         res.setHeader("Content-Type", "text/plain");
         // Use the payload called back the handler, or default to an empty string
-        payloadString = typeof (payload) !== "undefined" ? payload : "";
+        payloadString = typeof(payload) !== "undefined" ? payload : "";
     };
 
     // return the response-part that are common to all content-types
@@ -255,5 +255,3 @@ module.exports = server;
 //	console.log ("this was an error ", err)
 //})
 ///////////////////////////////////////////////////////////
-
-

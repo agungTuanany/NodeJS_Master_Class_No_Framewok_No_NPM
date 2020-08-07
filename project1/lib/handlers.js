@@ -81,7 +81,6 @@ handlers.accountCreate = (data, callback) => {
             }
             else { callback(500, undefined, "html") };
         });
-
     }
     else { callback (405, undefined, "html") };
 };
@@ -334,23 +333,23 @@ handlers.public = (data, callback) =>{
                     // Determine the content type (defaulty to plain text)
                     let contentType = "plain";
 
-                    if (trimmedAssetName.indexOf (".css") > -1) {
+                    if (trimmedAssetName.indexOf(".css") > -1) {
                         contentType = "css";
                     };
 
-                    if (trimmedAssetName.indexOf (".png") > -1) {
+                    if (trimmedAssetName.indexOf(".png") > -1) {
                         contentType = "png";
                     };
 
-                    if (trimmedAssetName.indexOf (".jpg") > -1) {
+                    if (trimmedAssetName.indexOf(".jpg") > -1) {
                         contentType = "jpg";
                     };
 
-                    if (trimmedAssetName.indexOf (".ico") > -1) {
+                    if (trimmedAssetName.indexOf(".ico") > -1) {
                         contentType = "favicon";
                     };
 
-                    if (trimmedAssetName.indexOf (".js") > -1) {
+                    if (trimmedAssetName.indexOf(".js") > -1) {
                         contentType = "js";
                     };
 
@@ -446,7 +445,6 @@ handlers._users.post = (data, callback) => {
                 else {
                     callback(500, {"Error": "POST User Method: could not hash the user's password"});
                 };
-
             }
             else {
                 // user already exist
@@ -454,7 +452,6 @@ handlers._users.post = (data, callback) => {
                 callback(400, {"Error": "POST User Method: A user with that phone number already exist"});
             };
         });
-
     }
     else {
         //console.log (firstName, lastName, phone, password, tosAgreement)
@@ -465,7 +462,7 @@ handlers._users.post = (data, callback) => {
 // User - get
 // Required data: phone
 // Optional data: none
-// XXX TODO: should not truncate the trimmedPath in phone number cause the queryStringObject cannot read "+" symbol
+// XXX FIXME: should not truncate the trimmedPath in phone number cause the queryStringObject cannot read "+" symbol
 handlers._users.get = (data, callback) => {
 
     // Check that the phone number is valid
@@ -903,6 +900,7 @@ handlers._checks = {};
 // Required data : protocol, url, method, successCodes, timeoutSeconds
 // Optional data : none
 handlers._checks.post = (data, callback) => {
+
     // Validate inputs
     const protocol = typeof(data.payload.protocol) === "string" && ["http", "https"].indexOf(data.payload.protocol) > -1 ?
         data.payload.protocol :

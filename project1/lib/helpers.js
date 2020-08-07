@@ -7,11 +7,13 @@
 
 // Core Dependencies
 const crypto      = require("crypto");
-const config      = require("./config");
 const https       = require("https");
 const querystring = require("querystring");
 const path        = require("path");
 const fs          = require("fs");
+
+// Internal Dependencies
+const config      = require("./config");
 
 // Container for all the helpers
 const helpers = {};
@@ -25,7 +27,7 @@ helpers.getANumber = () => {
 // Create a SHA256 hash
 helpers.hash = str =>  {
 
-    if (typeof (str) === "string" && str.length > 0) {
+    if (typeof(str) === "string" && str.length > 0) {
         const hash = crypto.createHmac("sha256", config.hashingSecret).update (str).digest ("hex");
         return hash;
     }
@@ -49,7 +51,7 @@ helpers.parseJsonToObject =  str => {
 // Create a string random alphanumeric characters, of a given length
 helpers.createRandomString = strLength => {
 
-    strLength = typeof (strLength) === "number" && strLength > 0 ?
+    strLength = typeof(strLength) === "number" && strLength > 0 ?
         strLength :
         false;
 
@@ -78,9 +80,9 @@ helpers.createRandomString = strLength => {
 helpers.sendTwilioSms = (phone, msg, callback) => {
 
     // Validate parameter
-    phone = typeof (phone) === "string" && phone.trim().length >= 12 ?
+    phone = typeof(phone) === "string" && phone.trim().length >= 12 ?
         phone.trim() : false
-    msg   = typeof (msg) === "string" && msg.trim ().length > 0 && msg.trim().length < = 160 ?
+    msg   = typeof(msg) === "string" && msg.trim ().length > 0 && msg.trim().length < = 160 ?
         msg.trim() :
         false;
 
@@ -146,11 +148,11 @@ helpers.sendTwilioSms = (phone, msg, callback) => {
 helpers.getTemplate = (templateName, data, callback) => {
 
     // sanity check
-    templateName = typeof (templateName) === "string" && templateName.length > 0 ?
+    templateName = typeof(templateName) === "string" && templateName.length > 0 ?
         templateName :
         false;
 
-    data = typeof (data) === "object" && data !== null ?
+    data = typeof(data) === "object" && data !== null ?
         data :
         {};
 
@@ -161,7 +163,7 @@ helpers.getTemplate = (templateName, data, callback) => {
 
             if (!err && str && str.length > 0) {
                 // Do interpolation on the string
-                const finalString = helpers.interpolate (str, data);
+                const finalString = helpers.interpolate(str, data);
                 callback(false, finalString);
             }
             else { callback("No template could be found") };
@@ -170,11 +172,12 @@ helpers.getTemplate = (templateName, data, callback) => {
     else { callback("A valid template name was not specified") };
 };
 
-// Add the universal header and footer to a string, and pass provided data object to header and footer for interpolation (penyisipan)
+// Add the universal header and footer to a string, and pass provided data
+// object to header and footer for interpolation (penyisipan)
 helpers.addUniversalTemplate = (str, data, callback) => {
 
-    str = typeof (str) === "string" && str.length > 0 ? str : "";
-    data = typeof (data) === "object" && data !== null ? data : {};
+    str = typeof(str) === "string" && str.length > 0 ? str : "";
+    data = typeof(data) === "object" && data !== null ? data : {};
 
     // Get the header
     helpers.getTemplate("_header", data, (err, headerString) => {
@@ -186,7 +189,7 @@ helpers.addUniversalTemplate = (str, data, callback) => {
                 if (!err && footerString) {
                     // Add headerString and footerString together
                     const fullString = headerString+str+footerString;
-                    callback (false, fullString);
+                    callback(false, fullString);
                 }
                 else { callback("Could not find the 'footer' template") };
             });
@@ -199,8 +202,8 @@ helpers.addUniversalTemplate = (str, data, callback) => {
 // Take a given string and data object, and find/replace all the keys within it
 helpers.interpolate =  (str, data) => {
 
-    str     = typeof (str) === "string" && str.length > 0 ? str : "";
-    data    = typeof (data) === "object" && data !== null ? data : {};
+    str     = typeof(str) === "string" && str.length > 0 ? str : "";
+    data    = typeof(data) === "object" && data !== null ? data : {};
 
     // Add the templateGloblas to the data object, prepending their key name with "global."
     for (let keyName in config.templateGlobals) {
@@ -211,7 +214,7 @@ helpers.interpolate =  (str, data) => {
 
     // For each key in the data object, insert it's value into the string at the corresponding placeholder
     for (let key in data) {
-        if (data.hasOwnProperty(key) && typeof (data[key] === "string")) {
+        if (data.hasOwnProperty(key) && typeof(data[key] === "string")) {
             const replace = data[key];
             const find = '{'+key+'}';
             str = str.replace(find, replace);
@@ -223,7 +226,7 @@ helpers.interpolate =  (str, data) => {
 // Get the content of a static (public) assets
 helpers.getStaticAsset = (fileName, callback) => {
 
-    fileName = typeof (fileName) === "string" && fileName.length > 0 ? fileName : false;
+    fileName = typeof(fileName) === "string" && fileName.length > 0 ? fileName : false;
 
     if (fileName) {
         const publicDir = path.join(__dirname, "/../public/");
